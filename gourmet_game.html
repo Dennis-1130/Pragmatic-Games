@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Goro's Gluttonous Journey — Pragmatic Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&family=Shippori+Mincho+B1:wght@400;700;800&family=Caveat:wght@500;700&family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--warm:#f5a623;--lantern:#e74c3c;--gold:#ffd700;--wood-d:#3e2723;--wood-m:#5d4037;--wood-l:#8d6e63;--cream:#fff8e1;--ink:#1a1a2e;--ok:#2ecc71;--fail:#e74c3c;--blue:#3498db}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'DM Sans','Zen Maru Gothic',sans-serif;background:#0a0a0a;user-select:none;-webkit-user-select:none}
+#scene{width:100vw;height:100vh;position:relative;overflow:hidden;transition:filter .8s}
+.bg-base{position:absolute;inset:0;background:#0a0a0a;z-index:0}
+.bg-glow{position:absolute;inset:0;pointer-events:none;z-index:1}
+#scene-stage{position:absolute;inset:0;z-index:5;overflow:hidden}
+.scene-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;transition:filter .8s,opacity .6s}
+.char-portrait{position:absolute;bottom:0;z-index:10;object-fit:contain;filter:drop-shadow(0 6px 18px rgba(0,0,0,.55));transition:all .5s ease;image-rendering:auto}
+.char-portrait.npc-pos{left:1%;height:clamp(180px,48vh,420px)}
+.char-portrait.goro-pos{right:1%;height:clamp(160px,42vh,380px)}
+.char-portrait.npc-pos{animation:charFloat 3.5s ease-in-out infinite}
+.char-portrait.goro-pos{animation:charFloat 3s ease-in-out infinite .5s}
+@keyframes charFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.char-portrait.react{animation:charReact .55s ease}
+@keyframes charReact{0%{transform:scale(1)}40%{transform:scale(1.06) translateY(-8px)}100%{transform:scale(1)}}
+.char-portrait.shake-bad{animation:charShake .4s ease}
+@keyframes charShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.hotspot{position:absolute;z-index:25;cursor:pointer;display:none;transition:transform .2s}
+.hotspot:hover{transform:scale(1.15)}.hotspot:active{transform:scale(.92)}
+.hs-ring{width:clamp(42px,6.5vw,62px);height:clamp(42px,6.5vw,62px);border:3px solid var(--gold);border-radius:50%;animation:hpulse 2s ease-in-out infinite;display:flex;align-items:center;justify-content:center;background:rgba(255,215,0,.1)}
+.hs-ring i{color:var(--gold);font-size:clamp(16px,2.5vw,24px)}
+@keyframes hpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.4)}50%{box-shadow:0 0 0 12px rgba(255,215,0,0)}}
+#hud{position:absolute;top:0;left:0;width:100%;padding:12px 18px;background:linear-gradient(180deg,rgba(0,0,0,.85),rgba(0,0,0,.35),transparent);color:var(--cream);display:flex;justify-content:space-between;align-items:center;z-index:50;font-size:clamp(12px,2vw,16px)}
+.hud-l{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.hud-l i{color:var(--lantern)}
+.hud-r{text-align:right;display:flex;align-items:center;gap:12px}
+.hud-xp{color:var(--gold);font-weight:900;font-size:clamp(16px,2.5vw,22px)}
+.hud-sub{opacity:.6;font-size:clamp(9px,1.4vw,12px)}
+.hud-act{display:inline-block;background:rgba(255,255,255,.12);padding:3px 12px;border-radius:10px;font-size:clamp(10px,1.5vw,13px);margin-left:8px}
+.hud-back{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:var(--cream);padding:6px 14px;border-radius:16px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:600;transition:background .2s;display:flex;align-items:center;gap:5px}
+.hud-back:hover{background:rgba(255,255,255,.22)}
+#dialogue-panel{position:absolute;bottom:0;left:0;width:100%;z-index:60;pointer-events:none;transition:transform .5s;transform:translateY(100%)}
+#dialogue-panel.show{transform:translateY(0);pointer-events:auto}
+.dlg-box{background:rgba(10,8,5,.93);border-top:3px solid var(--wood-m);padding:clamp(14px,2.5vw,24px) clamp(18px,3.5vw,32px);backdrop-filter:blur(8px);min-height:clamp(110px,20vh,180px);display:flex;gap:clamp(10px,2vw,16px)}
+.dlg-portrait-wrap{flex-shrink:0;width:clamp(56px,9vw,76px);height:clamp(56px,9vw,76px);border-radius:50%;overflow:hidden;border:2.5px solid var(--warm);background:#1a1a1a;box-shadow:0 0 15px rgba(245,166,35,.25)}
+.dlg-portrait-wrap img{width:100%;height:100%;object-fit:cover}
+.dlg-content{flex:1;min-width:0}
+.dlg-speaker{font-family:'Shippori Mincho B1',serif;font-size:clamp(15px,2.2vw,20px);font-weight:700;color:var(--warm);margin-bottom:6px}
+.dlg-text{font-size:clamp(15px,2.5vw,20px);line-height:1.7;color:#e8e0d0;min-height:2.2em}
+.dlg-hint{font-size:clamp(13px,1.8vw,16px);color:#888;margin-top:8px;cursor:pointer;text-align:right;opacity:0;transition:opacity .3s}
+.dlg-hint.vis{opacity:1}.dlg-hint:hover{color:var(--warm)}
+#interact-zone{position:absolute;inset:0;z-index:65;pointer-events:none;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0);transition:background .5s,opacity .4s;opacity:0}
+#interact-zone.show{pointer-events:auto;background:rgba(0,0,0,.55);opacity:1}
+.iz-inner{width:min(680px,94vw);max-height:84vh;overflow-y:auto;padding:10px}
+.iz-prompt{font-size:clamp(14px,2.2vw,18px);color:#ccc;margin-bottom:16px;text-align:center;font-weight:500}
+.cards-wrap{display:flex;gap:clamp(10px,2vw,18px);justify-content:center;flex-wrap:wrap}
+.att-card{background:rgba(20,15,10,.92);border:2px solid rgba(255,255,255,.18);border-radius:18px;padding:clamp(18px,3vw,26px);cursor:pointer;transition:all .35s;flex:1;min-width:clamp(140px,25vw,200px);max-width:260px;text-align:center;position:relative;overflow:hidden;backdrop-filter:blur(6px)}
+.att-card:hover{border-color:var(--gold);background:rgba(255,215,0,.1);transform:translateY(-6px) scale(1.03)}
+.att-card:active{transform:scale(.96)}
+.att-card .card-icon{font-size:clamp(36px,6vw,52px);margin-bottom:8px}
+.att-card .card-label{font-size:clamp(14px,2.2vw,18px);font-weight:700;color:var(--cream);margin-bottom:6px}
+.att-card .card-sub{font-size:clamp(12px,1.8vw,15px);color:#bbb;line-height:1.5}
+.att-card.correct{border-color:var(--ok);background:rgba(46,204,113,.15);box-shadow:0 0 30px rgba(46,204,113,.3)}
+.att-card.wrong{border-color:var(--fail);background:rgba(231,76,60,.12)}
+.att-card.locked{opacity:.25;pointer-events:none;filter:blur(2px)}
+@keyframes shatterTopLeft{0%{clip-path:polygon(0 0,50% 0,50% 50%,0 50%);opacity:1;transform:translate(0,0)}100%{clip-path:polygon(0 0,50% 0,50% 50%,0 50%);opacity:0;transform:translate(-60px,-40px) rotate(-25deg) scale(.5)}}
+@keyframes shatterTopRight{0%{clip-path:polygon(50% 0,100% 0,100% 50%,50% 50%);opacity:1}100%{clip-path:polygon(50% 0,100% 0,100% 50%,50% 50%);opacity:0;transform:translate(60px,-50px) rotate(20deg) scale(.4)}}
+@keyframes shatterBotLeft{0%{clip-path:polygon(0 50%,50% 50%,50% 100%,0 100%);opacity:1}100%{clip-path:polygon(0 50%,50% 50%,50% 100%,0 100%);opacity:0;transform:translate(-50px,50px) rotate(-15deg) scale(.3)}}
+@keyframes shatterBotRight{0%{clip-path:polygon(50% 50%,100% 50%,100% 100%,50% 100%);opacity:1}100%{clip-path:polygon(50% 50%,100% 50%,100% 100%,50% 100%);opacity:0;transform:translate(50px,60px) rotate(30deg) scale(.4)}}
+.att-card.shatter{pointer-events:none}.shatter-piece{position:absolute;inset:0;border-radius:18px;pointer-events:none}
+.shatter-piece.tl{animation:shatterTopLeft .7s ease-out forwards}
+.shatter-piece.tr{animation:shatterTopRight .7s ease-out forwards;animation-delay:.05s}
+.shatter-piece.bl{animation:shatterBotLeft .7s ease-out forwards;animation-delay:.1s}
+.shatter-piece.br{animation:shatterBotRight .7s ease-out forwards;animation-delay:.08s}
+.drag-targets{display:flex;gap:clamp(14px,3vw,24px);justify-content:center;margin-top:18px;flex-wrap:wrap}
+.drag-target{padding:clamp(16px,2.5vw,24px) clamp(20px,3vw,30px);border:2px dashed rgba(255,255,255,.2);border-radius:18px;cursor:pointer;transition:all .3s;text-align:center;flex:1;max-width:220px;min-width:120px;background:rgba(20,15,10,.8)}
+.drag-target:hover{border-color:var(--gold);background:rgba(255,215,0,.1);transform:translateY(-4px)}
+.drag-target .dt-icon{font-size:clamp(32px,5vw,48px);margin-bottom:6px}
+.drag-target .dt-label{font-size:clamp(14px,2vw,18px);color:var(--cream);font-weight:700}
+.drag-target .dt-sub{font-size:clamp(11px,1.5vw,14px);color:#999;margin-top:4px}
+.qte-wrap{text-align:center}
+.qte-title{font-size:clamp(18px,3vw,24px);color:var(--cream);margin-bottom:10px;font-weight:700}
+.qte-subtitle{font-size:clamp(12px,1.8vw,16px);color:#999;margin-bottom:16px}
+.meter-track{width:100%;max-width:440px;height:clamp(48px,7vh,64px);background:#1a1a1a;border-radius:32px;margin:0 auto 14px;position:relative;overflow:hidden;border:2px solid #444}
+.meter-zone{position:absolute;height:100%;border-radius:32px}
+.meter-zone.quiet{left:0;width:35%;background:linear-gradient(90deg,rgba(52,152,219,.25),rgba(52,152,219,.15))}
+.meter-zone.medium{left:35%;width:30%;background:rgba(255,255,255,.05)}
+.meter-zone.loud{right:0;width:35%;background:linear-gradient(90deg,rgba(231,76,60,.15),rgba(231,76,60,.4))}
+.meter-zone-label{position:absolute;top:50%;transform:translateY(-50%);font-size:clamp(10px,1.5vw,14px);color:rgba(255,255,255,.5);pointer-events:none}
+.meter-zone.quiet .meter-zone-label{left:10px}.meter-zone.loud .meter-zone-label{right:10px}
+.meter-needle{position:absolute;top:5px;bottom:5px;width:clamp(20px,3vw,30px);background:var(--gold);border-radius:14px;box-shadow:0 0 14px rgba(255,215,0,.6);z-index:2}
+.meter-btn{display:inline-block;padding:clamp(14px,2.5vw,22px) clamp(36px,6vw,60px);background:linear-gradient(135deg,#e65100,#bf360c);color:white;border:3px solid #ffcc80;border-radius:50px;font-size:clamp(22px,3.5vw,32px);font-weight:900;cursor:pointer;font-family:'Zen Maru Gothic',sans-serif;transition:transform .1s}
+.meter-btn:active{transform:scale(.9)}
+.slider-wrap{text-align:center;padding:10px}
+.slider-visual{position:relative;width:100%;max-width:300px;height:200px;margin:0 auto 16px;background:rgba(0,0,0,.3);border-radius:12px;border:1px solid rgba(255,255,255,.1);overflow:hidden}
+.slider-zone{position:absolute;left:0;width:100%;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,.4)}
+.slider-indicator{position:absolute;left:10%;width:80%;height:4px;background:var(--gold);border-radius:2px;box-shadow:0 0 10px rgba(255,215,0,.5);z-index:2}
+.slider-hands{position:absolute;left:50%;transform:translateX(-50%);font-size:28px;z-index:3}
+.slider-input{width:80%;max-width:280px;margin:10px auto;display:block;accent-color:var(--gold)}
+.slider-confirm{padding:12px 36px;background:linear-gradient(135deg,var(--gold),#ffb300);color:var(--ink);border:none;border-radius:28px;font-weight:700;font-size:16px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.seq-wrap{text-align:center}.seq-items{display:flex;gap:16px;justify-content:center;margin:16px 0;flex-wrap:wrap}
+.seq-item{width:clamp(70px,12vw,100px);height:clamp(70px,12vw,100px);background:rgba(20,15,10,.9);border:2px solid rgba(255,255,255,.2);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;font-size:32px}
+.seq-item:hover{border-color:var(--gold);transform:translateY(-4px)}
+.seq-item.done{border-color:var(--ok);background:rgba(46,204,113,.15);opacity:.5;pointer-events:none}
+.seq-item.wrong{border-color:var(--fail);animation:seqShake .4s}
+.seq-item-label{font-size:11px;color:#aaa;margin-top:4px}
+@keyframes seqShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.rapid-wrap{text-align:center}
+.rapid-target{width:clamp(100px,18vw,140px);height:clamp(100px,18vw,140px);background:rgba(20,15,10,.9);border:3px solid rgba(255,255,255,.2);border-radius:50%;margin:16px auto;display:flex;align-items:center;justify-content:center;font-size:48px;cursor:pointer;transition:transform .1s;animation:rapidPulse 1s ease-in-out infinite}
+.rapid-target:active{transform:scale(.9)}
+@keyframes rapidPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.3)}50%{box-shadow:0 0 0 12px rgba(255,215,0,0)}}
+.rapid-bar{width:80%;max-width:300px;height:20px;background:#1a1a1a;border-radius:10px;margin:10px auto;overflow:hidden;border:1px solid #444}
+.rapid-fill{height:100%;background:linear-gradient(90deg,var(--fail),var(--gold),var(--ok));border-radius:10px;transition:width .1s;width:0}
+.rush-wrap{text-align:center;color:var(--cream)}
+.rush-header{display:flex;align-items:center;justify-content:center;gap:clamp(12px,3vw,20px);margin-bottom:12px;flex-wrap:wrap}
+.rush-flag{font-size:clamp(36px,7vw,52px);line-height:1}
+.rush-country{font-family:'Shippori Mincho B1',serif;font-size:clamp(18px,3vw,26px);font-weight:800}
+.rush-timer-wrap{position:relative;width:clamp(64px,10vw,80px);height:clamp(64px,10vw,80px)}
+.rush-timer-ring{width:100%;height:100%;border-radius:50%;border:4px solid var(--gold);display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);transition:border-color .3s}
+.rush-timer-ring.danger{border-color:var(--fail);animation:rushPulse .4s infinite}
+@keyframes rushPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.rush-timer-num{font-size:clamp(18px,3vw,24px);font-weight:900;color:var(--gold);font-family:'DM Sans',sans-serif;transition:color .3s}
+.rush-timer-ring.danger .rush-timer-num{color:var(--fail)}
+.rush-progress{margin:8px 0;font-size:18px;letter-spacing:8px;color:rgba(255,255,255,.5)}
+.rush-progress .done{color:var(--ok)}.rush-progress .current{color:var(--gold);text-shadow:0 0 8px var(--gold)}
+.rush-q{font-size:clamp(14px,2.2vw,17px);line-height:1.7;background:rgba(0,0,0,.4);padding:14px;border-radius:12px;margin-bottom:14px;border:1px solid rgba(255,255,255,.1)}
+.rush-choices{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.rush-card{flex:1;min-width:clamp(140px,30vw,220px);max-width:280px;padding:16px;background:rgba(20,15,10,.9);border:2px solid rgba(255,255,255,.18);border-radius:16px;cursor:pointer;transition:all .25s;text-align:center}
+.rush-card:hover{border-color:var(--gold);transform:translateY(-4px);background:rgba(255,215,0,.08)}
+.rush-card.correct{border-color:var(--ok);background:rgba(46,204,113,.2);pointer-events:none}
+.rush-card.wrong{border-color:var(--fail);background:rgba(231,76,60,.2);pointer-events:none}
+.rush-card.locked{opacity:.3;pointer-events:none}
+.rush-card-label{font-size:clamp(14px,2vw,17px);font-weight:700;color:var(--cream);margin-bottom:4px}
+.rush-card-sub{font-size:clamp(12px,1.6vw,14px);color:#bbb;line-height:1.4}
+.rush-explain{margin-top:10px;padding:10px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:10px;font-size:clamp(12px,1.6vw,14px);color:var(--gold);line-height:1.5;display:none;text-align:left}
+.rush-explain.show{display:block}
+.rush-flash{position:absolute;inset:0;pointer-events:none;z-index:66;opacity:0;transition:opacity .15s}
+.rush-flash.red{background:rgba(231,76,60,.25);opacity:1}
+.rush-flash.green{background:rgba(46,204,113,.15);opacity:1}
+.rush-penalty{font-size:clamp(20px,4vw,32px);color:var(--fail);font-weight:900;position:absolute;top:20%;left:50%;transform:translateX(-50%);opacity:0;transition:opacity .3s;z-index:67;text-shadow:0 0 20px rgba(231,76,60,.5)}
+.rush-penalty.show{opacity:1;animation:penaltyFloat 1s ease-out forwards}
+@keyframes penaltyFloat{0%{transform:translateX(-50%) translateY(0);opacity:1}100%{transform:translateX(-50%) translateY(-40px);opacity:0}}
+.boss-wrap{text-align:center;color:var(--cream)}
+.boss-npc-img{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);margin-bottom:8px;box-shadow:0 0 20px rgba(255,215,0,.3)}
+.boss-name{font-family:'Playfair Display',serif;font-size:clamp(20px,3.5vw,28px);font-weight:900;color:var(--gold);margin-bottom:2px}
+.boss-title{font-size:clamp(11px,1.6vw,14px);color:#aaa;margin-bottom:14px}
+.boss-qnum{font-size:14px;color:var(--warm);font-weight:700;margin-bottom:10px}
+.boss-scenario{font-size:clamp(14px,2.2vw,17px);line-height:1.7;background:rgba(0,0,0,.4);padding:14px;border-radius:12px;margin-bottom:8px;border:1px solid rgba(255,215,0,.15)}
+.boss-goro{font-size:clamp(12px,1.6vw,14px);color:#888;font-style:italic;margin-bottom:14px}
+.rush-npc-portrait{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);box-shadow:0 0 12px rgba(255,215,0,.2)}
+.clue-toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.85);background:rgba(0,0,0,.94);color:var(--cream);padding:clamp(18px,3vw,28px);border-radius:16px;border:2px solid var(--gold);font-size:clamp(14px,2.2vw,18px);line-height:1.7;max-width:min(420px,85vw);z-index:70;opacity:0;transition:all .4s;pointer-events:none;text-align:center}
+.clue-toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
+.clue-toast i{color:var(--gold);font-size:26px;display:block;margin-bottom:10px}
+.clue-dismiss{display:inline-block;margin-top:12px;padding:7px 22px;background:var(--gold);color:var(--ink);border-radius:20px;cursor:pointer;font-weight:700;font-size:14px;border:none;font-family:'DM Sans',sans-serif}
+.result-overlay{position:absolute;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .8s}
+.result-overlay.show{opacity:1;pointer-events:auto}
+.result-overlay.ok-bg{background:radial-gradient(ellipse at center,rgba(255,215,0,.12),rgba(0,0,0,.65))}
+.result-overlay.fail-bg{background:rgba(0,0,0,.75)}
+.res-card{background:var(--cream);border-radius:22px;padding:clamp(24px,4vw,40px);max-width:min(540px,92vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6);border:3px solid;transform:translateY(16px);transition:transform .6s cubic-bezier(.175,.885,.32,1.275);max-height:88vh;overflow-y:auto}
+.result-overlay.show .res-card{transform:translateY(0)}
+.res-card.ok{border-color:var(--ok)}.res-card.fail{border-color:var(--fail)}.res-card.victory{border-color:var(--gold)}
+.res-icon{font-size:clamp(44px,8vw,64px);margin-bottom:12px}
+.res-title{font-family:'Shippori Mincho B1',serif;font-size:clamp(22px,4vw,32px);font-weight:800;margin-bottom:12px}
+.res-title.ok{color:var(--ok)}.res-title.fail{color:var(--fail)}.res-title.victory{color:var(--gold)}
+.res-text{font-size:clamp(14px,2.2vw,17px);line-height:1.7;color:#444;margin-bottom:18px}
+.res-xp{font-size:clamp(18px,3vw,24px);color:var(--gold);font-weight:900;margin-bottom:16px}
+.res-btn{display:inline-block;padding:12px 36px;border-radius:28px;border:none;font-family:'DM Sans',sans-serif;font-size:clamp(15px,2.2vw,18px);font-weight:700;cursor:pointer;transition:transform .2s;margin:4px}
+.res-btn:hover{transform:translateY(-2px)}
+.res-btn.ok{background:var(--ok);color:#fff}.res-btn.fail{background:var(--fail);color:#fff}
+.res-btn.gold{background:linear-gradient(135deg,var(--gold),#ffb300);color:var(--ink)}
+.res-btn.blue{background:linear-gradient(135deg,#1976d2,#0d47a1);color:#fff}
+.victory-items{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0}
+.vi{background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:8px;padding:5px 10px;font-size:12px;color:#555}
+.victory-dish{font-family:'Playfair Display',serif;font-size:clamp(16px,2.5vw,22px);font-weight:900;color:#bf360c;margin:14px 0 8px}
+.intro{position:absolute;inset:0;background:rgba(0,0,0,.94);z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--cream);text-align:center;padding:20px;transition:opacity .8s}
+.intro.hidden{opacity:0;pointer-events:none}
+.intro-badge{font-size:clamp(11px,1.6vw,14px);color:var(--lantern);letter-spacing:3px;margin-bottom:8px;text-transform:uppercase}
+.intro-title{font-family:'Shippori Mincho B1',serif;font-size:clamp(30px,6vw,52px);margin-bottom:8px;letter-spacing:4px;text-shadow:0 0 30px rgba(245,166,35,.35)}
+.intro-sub{font-family:'Caveat',cursive;font-size:clamp(17px,3vw,28px);color:var(--warm);margin-bottom:26px;opacity:.85}
+.intro-desc{font-size:clamp(13px,2vw,17px);max-width:500px;line-height:1.8;opacity:.65;margin-bottom:6px}
+.intro-reward{display:inline-flex;align-items:center;gap:8px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:20px;padding:7px 18px;margin:14px 0 26px;font-size:clamp(13px,2vw,16px);color:var(--gold)}
+.intro-btns{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.intro-start{padding:16px 50px;background:linear-gradient(135deg,var(--lantern),#c0392b);color:white;border:none;border-radius:30px;font-family:'DM Sans',sans-serif;font-size:clamp(17px,2.5vw,22px);font-weight:700;cursor:pointer;transition:transform .2s;box-shadow:0 4px 20px rgba(231,76,60,.4)}
+.intro-start:hover{transform:translateY(-3px)}
+.intro-back{padding:16px 28px;background:rgba(255,255,255,.1);color:var(--cream);border:1px solid rgba(255,255,255,.2);border-radius:30px;font-family:'DM Sans',sans-serif;font-size:clamp(15px,2vw,18px);font-weight:600;cursor:pointer;transition:background .2s}
+.intro-back:hover{background:rgba(255,255,255,.2)}
+.intro-ep{font-size:clamp(10px,1.4vw,13px);opacity:.35;margin-top:20px;letter-spacing:2px}
+.shake{animation:camshake .45s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes camshake{10%,90%{transform:translate3d(-5px,0,0)}20%,80%{transform:translate3d(5px,0,0)}30%,50%,70%{transform:translate3d(-8px,4px,0)}40%,60%{transform:translate3d(8px,-4px,0)}}
+#start-menu{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:#0a0807;overflow:hidden;transition:opacity 1s ease,transform 1s ease}
+#start-menu.leaving{opacity:0;transform:scale(1.04)}
+.cover-bg{position:absolute;inset:0;pointer-events:none}
+.cover-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 55% at 30% 50%,rgba(183,28,28,.12),transparent),radial-gradient(ellipse 60% 50% at 75% 40%,rgba(245,166,35,.08),transparent)}
+.cover-bg::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.008) 3px 4px);animation:coverGrain 8s linear infinite}
+@keyframes coverGrain{0%{transform:translate(0)}50%{transform:translate(1px,-1px)}100%{transform:translate(0)}}
+.cover-kanji{position:absolute;font-family:'Shippori Mincho B1',serif;color:rgba(255,255,255,.025);font-size:clamp(80px,18vw,200px);pointer-events:none;writing-mode:vertical-rl}
+.cover-kanji.k1{top:5%;left:3%;animation:kanjiFloat 12s ease-in-out infinite}
+.cover-kanji.k2{bottom:5%;right:3%;animation:kanjiFloat 14s ease-in-out infinite reverse}
+@keyframes kanjiFloat{0%,100%{transform:translateY(0);opacity:.6}50%{transform:translateY(-12px);opacity:1}}
+.cover-content{display:flex;align-items:center;gap:clamp(24px,5vw,72px);max-width:1100px;width:90%;z-index:2;padding:clamp(20px,4vh,40px) 0}
+.cover-left{flex:0 0 auto;position:relative}
+.goro-avatar{width:clamp(180px,28vw,360px);border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.6);animation:goroEntrance 1.2s cubic-bezier(.16,1,.3,1) both;transition:transform .6s}
+.goro-avatar:hover{transform:scale(1.03) rotate(-1deg)}
+@keyframes goroEntrance{0%{opacity:0;transform:translateX(-40px) scale(.9)}100%{opacity:1;transform:translateX(0) scale(1)}}
+.cover-left::before{content:'';position:absolute;top:-8px;left:-8px;right:-8px;bottom:-8px;border:2px solid rgba(183,28,28,.35);border-radius:24px;animation:goroEntrance 1.2s cubic-bezier(.16,1,.3,1) .15s both}
+.cover-right{flex:1;color:#e8e0d0}
+.cover-badge{display:inline-block;font-size:clamp(10px,1.4vw,13px);letter-spacing:4px;text-transform:uppercase;color:var(--lantern);background:rgba(183,28,28,.12);border:1px solid rgba(183,28,28,.25);padding:5px 16px;border-radius:20px;margin-bottom:clamp(12px,2vh,20px);animation:fadeSlideUp .8s ease .3s both}
+.cover-title{font-family:'Playfair Display',serif;font-size:clamp(28px,5.5vw,60px);font-weight:900;line-height:1.15;color:var(--cream);margin-bottom:clamp(8px,1.5vh,14px);animation:fadeSlideUp .8s ease .45s both}
+.cover-title em{font-style:italic;color:var(--warm);font-family:'Playfair Display',serif}
+.cover-jp{font-family:'Shippori Mincho B1',serif;font-size:clamp(14px,2.2vw,22px);color:rgba(245,166,35,.55);letter-spacing:6px;margin-bottom:clamp(16px,3vh,28px);animation:fadeSlideUp .8s ease .55s both}
+.cover-desc{font-size:clamp(13px,1.8vw,17px);line-height:1.9;color:rgba(232,224,208,.6);max-width:480px;margin-bottom:clamp(20px,4vh,36px);animation:fadeSlideUp .8s ease .65s both}
+.cover-divider{width:60px;height:2px;background:linear-gradient(90deg,var(--lantern),transparent);margin-bottom:clamp(20px,3vh,32px);animation:fadeSlideUp .8s ease .6s both}
+.cover-start{display:inline-flex;align-items:center;gap:12px;padding:clamp(14px,2.5vh,20px) clamp(32px,5vw,52px);background:linear-gradient(135deg,#b71c1c,#d32f2f);color:#fff;border:2px solid rgba(255,255,255,.1);border-radius:50px;font-family:'Playfair Display',serif;font-size:clamp(16px,2.4vw,22px);font-weight:700;cursor:pointer;transition:all .35s;box-shadow:0 8px 30px rgba(183,28,28,.4);animation:fadeSlideUp .8s ease .8s both}
+.cover-start:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 12px 40px rgba(183,28,28,.55)}
+.cover-start:active{transform:translateY(0) scale(.97)}
+.cover-start i{transition:transform .3s}.cover-start:hover i{transform:translateX(4px)}
+.cover-meta{margin-top:clamp(16px,3vh,28px);font-size:clamp(10px,1.3vw,13px);color:rgba(232,224,208,.25);letter-spacing:2px;animation:fadeSlideUp .8s ease .9s both}
+.cover-meta span{margin:0 8px}
+@keyframes fadeSlideUp{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+#game-container{display:none}
+#chapter-menu{position:fixed;inset:0;z-index:180;display:none;background:#070707;overflow:hidden}
+#chapter-menu.show{display:block}
+.cm-bg{position:absolute;inset:0;pointer-events:none}
+.cm-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 45% at 20% 40%,rgba(245,166,35,.10),transparent),radial-gradient(ellipse 55% 45% at 80% 35%,rgba(183,28,28,.12),transparent)}
+.cm-top{position:relative;z-index:2;padding:18px 18px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:linear-gradient(180deg,rgba(0,0,0,.85),rgba(0,0,0,.35),transparent);color:var(--cream)}
+.cm-title{font-family:'Playfair Display',serif;font-size:clamp(18px,3.2vw,28px);font-weight:900}
+.cm-sub{opacity:.55;font-size:clamp(11px,1.8vw,14px);margin-top:4px}
+.cm-xp{color:var(--gold);font-weight:900;font-size:clamp(14px,2vw,18px);margin-top:2px}
+.cm-actions{display:flex;gap:10px;align-items:center}
+.cm-btn{border:none;cursor:pointer;padding:10px 16px;border-radius:22px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;background:rgba(255,255,255,.10);color:var(--cream);border:1px solid rgba(255,255,255,.12);transition:transform .2s,background .2s}
+.cm-btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.14)}
+.cm-wrap{position:relative;z-index:2;padding:18px;height:calc(100vh - 86px);overflow:auto}
+.cm-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;max-width:1100px;margin:0 auto}
+@media(max-width:980px){.cm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.cm-grid{grid-template-columns:1fr}}
+.ch-card{background:rgba(20,15,10,.88);border:1.8px solid rgba(255,255,255,.14);border-radius:18px;padding:16px;color:var(--cream);backdrop-filter:blur(6px);box-shadow:0 18px 45px rgba(0,0,0,.45);transition:transform .25s,border-color .25s;cursor:pointer;min-height:120px;position:relative;overflow:hidden}
+.ch-card:hover{transform:translateY(-4px);border-color:rgba(255,215,0,.45);background:rgba(255,215,0,.06)}
+.ch-card.locked{opacity:.35;cursor:not-allowed}
+.ch-card.locked:hover{transform:none;border-color:rgba(255,255,255,.14);background:rgba(20,15,10,.88)}
+.ch-tag{display:inline-flex;align-items:center;gap:8px;font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18)}
+.ch-tag i{color:var(--gold)}
+.ch-name{margin-top:12px;font-family:'Shippori Mincho B1',serif;font-size:clamp(16px,2.6vw,20px);font-weight:800}
+.ch-meta{margin-top:6px;font-size:13px;color:rgba(232,224,208,.6);line-height:1.6}
+.ch-status{position:absolute;top:12px;right:12px;font-size:12px;font-weight:800;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.22)}
+.ch-status.done{color:var(--ok);border-color:rgba(46,204,113,.35)}.ch-status.next{color:var(--gold);border-color:rgba(255,215,0,.30)}.ch-status.lock{color:rgba(232,224,208,.55)}
+.ch-line{height:2px;width:64px;margin-top:10px;background:linear-gradient(90deg,rgba(231,76,60,.85),transparent);opacity:.55}
+#travel-overlay{position:fixed;inset:0;z-index:250;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85);backdrop-filter:blur(8px)}
+#travel-overlay.show{display:flex}
+.travel-card{width:min(720px,92vw);background:rgba(15,12,10,.88);border:2px solid rgba(255,215,0,.28);border-radius:22px;padding:22px 18px 18px;text-align:center;color:var(--cream)}
+.travel-title{font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(18px,3vw,26px)}
+.travel-route{margin-top:10px;font-family:'Shippori Mincho B1',serif;font-size:clamp(16px,2.8vw,22px);color:rgba(255,215,0,.85)}
+.plane{margin:18px auto;width:120px;height:54px;animation:planeFly 1.35s cubic-bezier(.2,.9,.2,1) infinite}
+.plane i{font-size:46px;color:var(--cream)}
+@keyframes planeFly{0%{transform:translateX(-120px) translateY(6px) rotate(-6deg);opacity:0}15%{opacity:1}50%{transform:translateX(0) translateY(-6px) rotate(3deg)}100%{transform:translateX(120px) translateY(6px);opacity:0}}
+.travel-skyline{margin-top:10px;height:8px;background:linear-gradient(90deg,transparent,rgba(255,215,0,.32),transparent);border-radius:999px;opacity:.6}
+.travel-sub{margin-top:10px;font-size:13px;color:rgba(232,224,208,.55)}
+@media(max-width:700px){.cover-content{flex-direction:column;text-align:center;gap:clamp(16px,3vh,28px)}.cover-left{order:-1}.goro-avatar{width:clamp(160px,45vw,240px)}.cover-right{display:flex;flex-direction:column;align-items:center}.cover-kanji{display:none}}
+@media(max-width:600px){.att-card{min-width:clamp(100px,40vw,160px)}.rush-card{min-width:clamp(120px,38vw,200px)}}
+</style>
+</head>
+<body>
+
+<div id="travel-overlay"><div class="travel-card"><div class="travel-title"><i class="fas fa-plane-departure" style="color:var(--gold)"></i> Next Journey</div><div class="travel-route" id="travelRoute"></div><div class="plane"><i class="fas fa-plane"></i></div><div class="travel-skyline"></div><div class="travel-sub" id="travelSub"></div></div></div>
+
+<div id="start-menu">
+  <div class="cover-bg"></div><div class="cover-kanji k1">食旅道</div><div class="cover-kanji k2">味覚冒険</div>
+  <div class="cover-content">
+    <div class="cover-left"><img src="https://pfst.cf2.poecdn.net/base/image/d8efd5bc9c858469cc23b73c45759cda114ab96c2ab6adaef7fe6ddf594043b3?w=1173&h=1451" class="goro-avatar" alt="Goro"></div>
+    <div class="cover-right">
+      <div class="cover-badge">Pragmatic Quest</div>
+      <div class="cover-title">Goro's <em>Gluttonous</em> Journey</div>
+      <div class="cover-jp">孤独のグルメ</div><div class="cover-divider"></div>
+      <div class="cover-desc">Finding that legendary dish requires more than just a good taste bud; it requires a resonance of the soul. Follow Goro across 8 countries, mastering the art of cross-cultural communication.</div>
+      <button class="cover-start" onclick="enterGame()"><i class="fas fa-utensils"></i> Begin the Journey</button>
+      <div class="cover-meta">8 COUNTRIES <span>·</span> 8 RECIPES <span>·</span> 1 GLUTTONOUS SOUL</div>
+    </div>
+  </div>
+</div>
+
+<div id="chapter-menu"><div class="cm-bg"></div>
+  <div class="cm-top"><div><div class="cm-title">World Journey — Chapters</div><div class="cm-sub">Clear a chapter to unlock the next.</div><div class="cm-xp" id="cmXp">Cultural IQ: 0 XP</div></div><div class="cm-actions"><button class="cm-btn" onclick="resetProgress()"><i class="fas fa-rotate-left"></i> Reset</button><button class="cm-btn" onclick="backToCover()"><i class="fas fa-home"></i> Cover</button></div></div>
+  <div class="cm-wrap"><div class="cm-grid" id="cmGrid"></div></div>
+</div>
+
+<div id="game-container">
+<div id="scene">
+  <div class="bg-base" id="bgBase"></div><div class="bg-glow" id="bgGlow"></div>
+  <div id="scene-stage"></div>
+  <div class="rush-flash" id="rushFlash"></div>
+  <div class="rush-penalty" id="rushPenalty">-5s</div>
+  <div id="hud">
+    <div class="hud-l"><button class="hud-back" onclick="goBackToMenu()"><i class="fas fa-arrow-left"></i> Back</button><i class="fas fa-map-marker-alt"></i><span id="hudLoc"></span><span class="hud-act" id="hudAct"></span></div>
+    <div class="hud-r"><div><div class="hud-sub">Cultural IQ</div><div class="hud-xp" id="xpDisp">0 XP</div></div></div>
+  </div>
+  <div id="dialogue-panel"><div class="dlg-box">
+    <div class="dlg-portrait-wrap"><img id="dlgPortrait" src="" alt=""></div>
+    <div class="dlg-content"><div class="dlg-speaker" id="dlgSpeaker"></div><div class="dlg-text" id="dlgText"></div><div class="dlg-hint" id="dlgHint" onclick="advanceDialogue()"><i class="fas fa-angle-right"></i> Continue</div></div>
+  </div></div>
+  <div id="interact-zone"><div class="iz-inner" id="izInner"></div></div>
+  <div class="clue-toast" id="clueToast"><i class="fas fa-lightbulb"></i><div id="clueText"></div><button class="clue-dismiss" onclick="dismissClue()">Got it</button></div>
+  <div class="result-overlay" id="resOverlay"><div class="res-card" id="resCard"></div></div>
+  <div class="intro" id="intro">
+    <div class="intro-badge" id="introBadge">Pragmatic Quest</div>
+    <div class="intro-title" id="introTitle"></div>
+    <div class="intro-sub" id="introSub"></div>
+    <div class="intro-desc" id="introDesc"></div>
+    <div class="intro-reward" id="introReward"></div>
+    <div class="intro-btns"><button class="intro-back" onclick="goBackToMenu()"><i class="fas fa-arrow-left"></i> Back</button><button class="intro-start" id="introBtn" onclick="startGame()"></button></div>
+    <div class="intro-ep" id="introEp"></div>
+  </div>
+</div>
+</div>
+
+<script>
+var IMAGES={
+  npc_takeshi:'https://private-user-images.githubusercontent.com/256053744/564079281-ab1dc5cc-c4b1-4ade-80c7-95bd26fa071b.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NTg0NzgsIm5iZiI6MTc3MzY1ODE3OCwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDc5MjgxLWFiMWRjNWNjLWM0YjEtNGFkZS04MGM3LTk1YmQyNmZhMDcxYi5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMDQ5MzhaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0xZDJhMzY0YTkzNWU1NDgwOTgxY2RiMTM5NDcwMWY1NTg0YWYwOGQwZTYxNGNlOWMxZmI4MTY4ODA5ZmE5OTRmJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.feRKqTg1CxbBHRplaPpYWdW4aVQlS6BlnzpifwMT4vg',
+  npc_wangzong:'https://private-user-images.githubusercontent.com/256053744/564083265-e6442ae9-ecea-4388-9a06-158de550a8b1.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NTk4ODksIm5iZiI6MTc3MzY1OTU4OSwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDgzMjY1LWU2NDQyYWU5LWVjZWEtNDM4OC05YTA2LTE1OGRlNTUwYThiMS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMTEzMDlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1hMWE0NzU2NTkyMTdjMDkyNTA4ZWM0MGZiZWRiYzkwZDk1N2ZiZWFkZDMxOWY3OGZlMTk1YzZlNjZhYjA0MTZiJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.ClxELz2gMco4aNYHAGWfRvbk5-4jtLWGCLHzcP9D-EQ',
+  npc_waiter:'https://private-user-images.githubusercontent.com/256053744/564083366-f744e50a-ae4e-4dc2-94fd-53618e18f190.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NTk4ODksIm5iZiI6MTc3MzY1OTU4OSwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDgzMzY2LWY3NDRlNTBhLWFlNGUtNGRjMi05NGZkLTUzNjE4ZTE4ZjE5MC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMTEzMDlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1iZTVhYjcxM2JmYzVlYTQ5NjY0NWU3MWMzN2ZkNmI5YWE1MmU1MzYzZDlhNGM5YTExNjhhODQ2YzRmNDZkZmIxJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.HjhrJqOkE2Z4txP0cgufM_EmpdKe6MeuGRrJiFEdWMw',
+  npc_mae:'https://private-user-images.githubusercontent.com/256053744/564084221-56fef7ec-d217-4336-8e06-dc79a30daced.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NTk4ODksIm5iZiI6MTc3MzY1OTU4OSwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDg0MjIxLTU2ZmVmN2VjLWQyMTctNDMzNi04ZTA2LWRjNzlhMzBkYWNlZC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMTEzMDlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0xNmMxNDEyNDgxZWFiYmM3NDk3MmIyNGYyNzlhMzRkOGJjZmU2M2M1OTkxMDYzNzZiZmMzNzRkMjEwZGMzYTNmJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.JRmns3KnWYonTanyzGi1BKuo8thY1iYfeLDsSgH67rE',
+  npc_hassan:'https://private-user-images.githubusercontent.com/256053744/564084368-5071ceee-74f6-4df6-95de-a3bf13305043.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NjAzMjgsIm5iZiI6MTc3MzY2MDAyOCwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDg0MzY4LTUwNzFjZWVlLTc0ZjYtNGRmNi05NWRlLWEzYmYxMzMwNTA0My5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMTIwMjhaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1hYTkwNzMyMzNlZmQ4MDU3NmQxMzliY2U5MWIzNzhhYTliZTQ2N2IzYzZhNzQ2OGVkMGU4ZDk1MDNhNTI5ZDU4JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.tXPuDiYeDGK-08a35ScVTA_dXrd5sLwTfdS_zydTM-8',
+  npc_laurent:'https://private-user-images.githubusercontent.com/256053744/564084816-0de0b5ec-9043-4d23-b203-6994f01ce5cf.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NjAzNTEsIm5iZiI6MTc3MzY2MDA1MSwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDg0ODE2LTBkZTBiNWVjLTkwNDMtNGQyMy1iMjAzLTY5OTRmMDFjZTVjZi5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMTIwNTFaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1iOTY2ZjRmN2E0OGY0ODMwNmUyNjQyYTk2Y2FhOTNmOGY5NDA1MmNjMGQzNDNiZTM3OTg4OTdlMTUzOTBjZjc4JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.NszuZw7FvlRDk_NjlEjlVyq4B7DVPJJ2C0drlBgNAoI',
+  npc_arthur:'https://private-user-images.githubusercontent.com/256053744/564084932-0c584926-4e7f-476e-97f8-9fe6fb9b5cd8.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NjU4MTYsIm5iZiI6MTc3MzY2NTUxNiwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDg0OTMyLTBjNTg0OTI2LTRlN2YtNDc2ZS05N2Y4LTlmZTZmYjliNWNkOC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMjUxNTZaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0yYjNmMmNkYTVhNGRmN2NkN2VmYTY3ZDVhMGQ1OGIyMGViZDZmMDI1YzNlMDNiN2Q4ZGY2OWM4ZGM5N2Q1ODcxJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.Fs7LKloxFltL8V79lagEmz8IWLu7b5iHPaynvHOznTM',
+  npc_max:'https://private-user-images.githubusercontent.com/256053744/564085130-73a07ae9-634d-42d8-a9a9-9933747007a4.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NjYxMjEsIm5iZiI6MTc3MzY2NTgyMSwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDg1MTMwLTczYTA3YWU5LTYzNGQtNDJkOC1hOWE5LTk5MzM3NDcwMDdhNC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMjU3MDFaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT03NDgxNGFhYzI0ZTY4MzNiMDM2MWI2ZjgzMGJhNzdhYWMyZWJlNjE5M2Q4NzZiNDNiNDMxMWM1YzIzYTZlZTI2JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.lLXD7lSjKTG2-I792xHwcAE5qIudNmvgJFXLg9HAPw0',
+  goro_think:'https://private-user-images.githubusercontent.com/256053744/564080669-b658b9ae-e720-4c3c-a1f0-572944ff6af0.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NTg2NTcsIm5iZiI6MTc3MzY1ODM1NywicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDgwNjY5LWI2NThiOWFlLWU3MjAtNGMzYy1hMWYwLTU3Mjk0NGZmNmFmMC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMDUyMzdaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT00MjA3ODczOWIyNmM1ZTFkMTNjMDVjYWI4Y2Q4NmY0Zjc4ZWZmOGJjNWY4ZWM0MGYzZTU2ZWNlOWRiZmZhZDE3JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.xo1o4A_MAR3Miyf6DwmUs6MbypsQSXVk0V5XLJe1lvE',
+  goro_happy:'https://private-user-images.githubusercontent.com/256053744/564080924-7a652afc-1360-4e86-a109-0e99a7c62a88.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NTg2ODcsIm5iZiI6MTc3MzY1ODM4NywicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDgwOTI0LTdhNjUyYWZjLTEzNjAtNGU4Ni1hMTA5LTBlOTlhN2M2MmE4OC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMDUzMDdaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0zYjc3MjIxMTcxZmVkOWJiZjE0Y2Y5NjRjZWFlMmNlM2U4ZDM2MjY2YmQ4YmM2NmE2M2IzZDE2ZWU4MDdhMTExJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.EJlgdUAgrcV10N3f6ksQJKh2QTpb-RehklA4TKVohNA',
+  bg_tokyo:'https://private-user-images.githubusercontent.com/256053744/564085659-7931ec97-1b71-492c-810b-76ff4063ba8d.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NTkyNzksIm5iZiI6MTc3MzY1ODk3OSwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDg1NjU5LTc5MzFlYzk3LTFiNzEtNDkyYy04MTBiLTc2ZmY0MDYzYmE4ZC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMTAyNTlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1jNWUwYzM0NWExOWVjNWMyZjBiYzBjZDI0ZmJlNjI1MjI0NGU1MDQzZTUzZmJmOGFiOWM2MDI4ZTQwZDUxYTU2JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.3DtAtbB2HsAD399ca67g_2qbUM79IbxbEJyuPdQt1cE',
+  bg_shanghai:'https://private-user-images.githubusercontent.com/256053744/564086549-1afaa839-65ab-4ca0-917f-d5285ddc6c9a.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NTk4ODksIm5iZiI6MTc3MzY1OTU4OSwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDg2NTQ5LTFhZmFhODM5LTY1YWItNGNhMC05MTdmLWQ1Mjg1ZGRjNmM5YS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMTEzMDlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1hNDNkOWEzNGJkODMzOTYwNWE3NzgwNTJhMWU2OGE5MTdjM2VmMDQwMGQ0YTc2YzI2OTUyOGJlODhiYjhlNGMyJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.E7tfJi9kbnRKwrf0kdOujtFb9cDNqyGfJ2XLXQYtN6I',
+  bg_hongkong:'https://private-user-images.githubusercontent.com/256053744/564086805-3300f537-c863-40bb-8c69-4dfaf63c2444.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NTk4ODksIm5iZiI6MTc3MzY1OTU4OSwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDg2ODA1LTMzMDBmNTM3LWM4NjMtNDBiYi04YzY5LTRkZmFmNjNjMjQ0NC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMTEzMDlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1lZGYyNzYwN2VhOWQ2M2ZkN2ZkNTIzNWQyNzliNDEwM2ZlNzM0YWUyZWNjNGI1NmVjYWU4YWNkYzM2NWU4OWZjJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.gdhkzXB5mdsRXu1ZC9-a70dXeSzRmiaP8oa2LO_BfSg',
+  bg_bangkok:'https://private-user-images.githubusercontent.com/256053744/564087204-06d204d7-3511-4f1c-b5a3-ae0297c11a32.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NTk4ODksIm5iZiI6MTc3MzY1OTU4OSwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDg3MjA0LTA2ZDIwNGQ3LTM1MTEtNGYxYy1iNWEzLWFlMDI5N2MxMWEzMi5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMTEzMDlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT04M2FiNWMwMzA3ODRkMzliY2JmMWNmOWUyMWIzZTViMWE1MGUzMjcxMWI0ZmJjY2EyYzU1ZTk0YjViNjVjNDMxJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.vYnCL05FQRHLf2ERG9B26mbJGXku2WTGAgh8KwlFqe0',
+  bg_dubai:'https://private-user-images.githubusercontent.com/256053744/564087691-6758275d-ec34-40e1-bc72-68c7c7d89519.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NjAzNTMsIm5iZiI6MTc3MzY2MDA1MywicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDg3NjkxLTY3NTgyNzVkLWVjMzQtNDBlMS1iYzcyLTY4YzdjN2Q4OTUxOS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMTIwNTNaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT00NGU1YzIyMDNhOGI4OGNkOTNiOTJkZWFjZDQ5ZjA5Mjc5NzNiM2RlZDI2NzUwMDhmYjcyNTkzMmE0ZTkxOTkxJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.GjkmyTM-DV3UiY0vp5Rbw9Sd1LibE9_TLx4Ku6zoGXg',
+  bg_paris:'https://private-user-images.githubusercontent.com/256053744/564087881-8ee892a4-3c50-4357-9500-ea9a134d8b48.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NjAzNTMsIm5iZiI6MTc3MzY2MDA1MywicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDg3ODgxLThlZTg5MmE0LTNjNTAtNDM1Ny05NTAwLWVhOWExMzRkOGI0OC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMTIwNTNaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1iMWRlMjlkOGNhMWE4MDFhMmIwNTg5M2Y0MWQwNGYwOTc4Y2I0ZmE4MTA3NWVjYjUwY2VhMjZlY2U4YzRlMWJjJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.D-EQocjl8Intwwcp24Z44lwXqgXDFPC6pNUbo4nbz0E',
+  bg_london:'https://private-user-images.githubusercontent.com/256053744/564088574-5418757c-0b82-47df-aff4-ba73e211c82a.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NjU4NDEsIm5iZiI6MTc3MzY2NTU0MSwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDg4NTc0LTU0MTg3NTdjLTBiODItNDdkZi1hZmY0LWJhNzNlMjExYzgyYS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMjUyMjFaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT01N2E2ZDI2ZDc1ZDdjMmMzNWEyMWVjY2QzM2NlNTlkMDU0Y2Y0OTc0NDYxZTQyOTAyOTNkMGJiY2IxNDJiNjg0JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.liP_7JuOppFiH8k5yLf9pOCyknXiPwPQNSYne1glEpg',
+  bg_newyork:'https://private-user-images.githubusercontent.com/256053744/564088109-b086f04f-2a37-44f4-8d6f-97555e52f986.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzM2NjYxNDYsIm5iZiI6MTc3MzY2NTg0NiwicGF0aCI6Ii8yNTYwNTM3NDQvNTY0MDg4MTA5LWIwODZmMDRmLTJhMzctNDRmNC04ZDZmLTk3NTU1ZTUyZjk4Ni5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMzE2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDMxNlQxMjU3MjZaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT05NDMyZjBjOWQ4NGNhM2YzYzNjZjJmMTQ1MDU3ZWQyYjI1ZDJjNDIzNzZmZmEwNTQ1NmM5MTY1YWNhZTFkZTc1JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.Lwy6zdUNrhAvz0k-9u-Za4-b58TUJX0UDSfxRUf2Ybc'
+};
+
+var CHAPTER_NPC={1:'npc_takeshi',2:'npc_wangzong',3:'npc_waiter',4:'npc_mae',5:'npc_hassan',6:'npc_laurent',7:'npc_arthur',8:'npc_max'};
+var CHAPTER_BG={1:'bg_tokyo',2:'bg_shanghai',3:'bg_hongkong',4:'bg_bangkok',5:'bg_dubai',6:'bg_paris',7:'bg_london',8:'bg_newyork'};
+var RUSH_NPC={jp:'npc_takeshi',cn:'npc_wangzong',hk:'npc_waiter',th:'npc_mae',ae:'npc_hassan',fr:'npc_laurent',gb:'npc_arthur',max:'npc_max'};
+
+var xp=0,currentChapter=0,act=0,cluesFound=0,foundClues={},typeTimer=null,meterAnim=null,afterDlgCb=null,dlgQueue=[],dlgIdx=0,currentActs=[];
+var $=function(id){return document.getElementById(id)};
+var scene=$('scene'),bgBase=$('bgBase'),bgGlow=$('bgGlow'),dlgPanel=$('dialogue-panel'),dlgSpeaker=$('dlgSpeaker'),dlgText=$('dlgText'),dlgHint=$('dlgHint'),izZone=$('interact-zone'),izInner=$('izInner'),clueToast=$('clueToast'),clueTextEl=$('clueText'),resOverlay=$('resOverlay'),resCard=$('resCard'),hudAct=$('hudAct'),xpDisp=$('xpDisp');
+
+var progress={clearedMax:0,chapterSaves:{}};
+function loadProgress(){try{var r=localStorage.getItem('pq_v4');if(r){var p=JSON.parse(r);if(p.clearedMax!==undefined)progress=p}var rx=localStorage.getItem('pq_xp_v4');if(rx){var n=parseInt(rx,10);if(!isNaN(n))xp=n}}catch(e){}xpDisp.textContent=xp+' XP'}
+function saveProgress(){try{localStorage.setItem('pq_v4',JSON.stringify(progress));localStorage.setItem('pq_xp_v4',String(xp))}catch(e){}}
+function resetProgress(){progress={clearedMax:0,chapterSaves:{}};xp=0;saveProgress();xpDisp.textContent='0 XP';renderChapterMenu()}
+function markChapterCleared(chId){if(progress.clearedMax<chId)progress.clearedMax=chId;delete progress.chapterSaves[chId];saveProgress()}
+function saveActProgress(chId,actIdx){progress.chapterSaves[chId]=actIdx;saveProgress()}
+function getSavedAct(chId){var s=progress.chapterSaves[chId];return(typeof s==='number')?s+1:0}
+loadProgress();
+
+function enterGame(){var m=$('start-menu');m.classList.add('leaving');setTimeout(function(){m.style.display='none';showChapterMenu()},900)}
+function backToCover(){$('chapter-menu').classList.remove('show');$('game-container').style.display='none';var m=$('start-menu');m.style.display='flex';m.classList.remove('leaving')}
+function goBackToMenu(){cancelAnimationFrame(meterAnim);clearInterval(window._rushInterval);clearInterval(window._rapidInterval);cancelAnimationFrame(window._holdAF);window._slurpDone=true;window._rushDone=true;window._rapidDone=true;window._holdDone=true;showChapterMenu()}
+function showChapterMenu(){$('game-container').style.display='none';$('chapter-menu').classList.add('show');$('cmXp').textContent='Cultural IQ: '+xp+' XP';renderChapterMenu()}
+function renderChapterMenu(){var g=$('cmGrid');if(!g)return;var h='';chapters.forEach(function(ch){var unlocked=progress.clearedMax>=(ch.id-1);var cleared=progress.clearedMax>=ch.id;var isNext=!cleared&&unlocked;var sc=cleared?'done':(isNext?'next':'lock');var st=cleared?'CLEARED':(isNext?'PLAY':'LOCKED');var hasSave=progress.chapterSaves[ch.id]!==undefined;h+='<div class="ch-card '+(unlocked?'':'locked')+'" onclick="openChapter('+ch.id+')"><div class="ch-status '+sc+'">'+st+(hasSave&&isNext?' ⏩':'')+'</div><div class="ch-tag"><i class="fas '+(cleared?'fa-circle-check':(isNext?'fa-play':'fa-lock'))+'"></i> '+ch.name.split(':')[0]+'</div><div class="ch-name">'+ch.name+'</div><div class="ch-line"></div><div class="ch-meta">'+ch.locText+'</div></div>'});g.innerHTML=h}
+function playTravel(from,to,sub,cb){var ov=$('travel-overlay');$('travelRoute').textContent=from+' ➜ '+to;$('travelSub').textContent=sub||'Preparing…';ov.classList.add('show');setTimeout(function(){ov.classList.remove('show');if(cb)cb()},1700)}
+function openChapter(chId){if(progress.clearedMax<(chId-1))return;var ch=chapters.find(function(x){return x.id===chId});$('chapter-menu').classList.remove('show');var go=function(){currentChapter=chId;$('game-container').style.display='block';$('hudLoc').textContent=ch.locText;xpDisp.textContent=xp+' XP';setupChapterIntro(chId)};if(chId>1)playTravel(ch.from,ch.to,'Boarding…',go);else go()}
+
+var chapters=[
+  {id:1,key:'tokyo',name:'Chapter 1: Tokyo 🇯🇵',from:'—',to:'Tokyo',locText:'Tokyo — Ramen Shop',introTitle:'孤独のグルメ',introSub:'Level 1: Japan — The Humble Ramen Master',introDesc:'A ramen master speaks with strategic humility. Master reading the air, indirect refusals, and nonverbal cues.',introReward:'Artisan Hand-pulled Noodles',introIcon:'fa-torii-gate',introDiff:'★☆☆ · 10 SCENES',actCount:10},
+  {id:2,key:'shanghai',name:'Chapter 2: Shanghai 🇨🇳',from:'Tokyo',to:'Shanghai',locText:'Shanghai — The Bund',introTitle:'外灘的人情味',introSub:'Level 2: China — Face & Strategic Modesty',introDesc:'Master the art of giving face, reciprocal kindness, bill-fighting rituals and guanxi on the Bund.',introReward:'Premium Jinhua Ham',introIcon:'fa-city',introDiff:'★☆☆ · 10 SCENES',actCount:10},
+  {id:3,key:'hongkong',name:'Chapter 3: Hong Kong 🇭🇰',from:'Shanghai',to:'Hong Kong',locText:'Hong Kong — Cha Chaan Teng',introTitle:'茶餐廳的規矩',introSub:'Level 3: Hong Kong — Speed & Local Lingo',introDesc:'Survive a packed cha chaan teng with speed, code-mixing, sentence-final particles and Cantonese pragmatics.',introReward:'20-year Aged Tangerine Peel',introIcon:'fa-mug-hot',introDiff:'★★☆ · 10 SCENES',actCount:10},
+  {id:4,key:'bangkok',name:'Chapter 4: Bangkok 🇹🇭',from:'Hong Kong',to:'Bangkok',locText:'Bangkok — Night Market',introTitle:'微笑的國度',introSub:'Level 4: Thailand — Smiles & Hidden Subtexts',introDesc:'Decode the gentle art of Thai harmony, Kreng Jai, hierarchy and "Jai Yen Yen."',introReward:'Royal Premium Fish Sauce',introIcon:'fa-pepper-hot',introDiff:'★★☆ · 10 SCENES',actCount:10},
+  {id:5,key:'dubai',name:'Chapter 5: Dubai 🇦🇪',from:'Bangkok',to:'Dubai',locText:'Dubai — Hassan\'s Majlis',introTitle:'沙漠中的禮儀',introSub:'Level 5: Dubai — Honor & Ritual',introDesc:'Every gesture carries weight in this world of hospitality, honor, and sacred ritual.',introReward:'World\'s Finest Saffron',introIcon:'fa-mosque',introDiff:'★★★ · 10 SCENES',actCount:10},
+  {id:6,key:'paris',name:'Chapter 6: Paris 🇫🇷',from:'Dubai',to:'Paris',locText:'Paris — Champ de Mars',introTitle:'铁塔下的对话',introSub:'Level 6: France — Debate & Register',introDesc:'Engage a proud French artisan. Master Bonjour, debate culture, tu/vous and negative politeness.',introReward:'Périgord Black Truffle',introIcon:'fa-wine-glass',introDiff:'★★★ · 10 SCENES',actCount:10},
+  {id:7,key:'london',name:'Chapter 7: London 🇬🇧',from:'Paris',to:'London',locText:'London — The Crown & Anchor',introTitle:'雨中的酒馆',introSub:'Level 7: Britain — Indirectness & Understatement',introDesc:'Navigate British politeness, hedged requests, ironic understatement and pub culture.',introReward:'Vintage Somerset Cheddar',introIcon:'fa-cloud-rain',introDiff:'★★★ · 10 SCENES',actCount:10},
+  {id:8,key:'newyork',name:'Final: New York 🇺🇸',from:'London',to:'New York',locText:'New York — Times Square',introTitle:'终极之旅',introSub:'Final Level: The Melting Pot Boss Rush',introDesc:'Face all 7 cultures in a 60-second timed gauntlet, then negotiate with NYC\'s toughest food mogul!',introReward:'Bourbon Barrel-Aged Smoked Soy Sauce',introIcon:'fa-flag-usa',introDiff:'★★★ · 8 ROUNDS',actCount:8}
+];
+
+function buildScene(chId){var stage=$('scene-stage');var bgKey=CHAPTER_BG[chId]||'bg_tokyo';var npcKey=CHAPTER_NPC[chId]||'npc_takeshi';stage.innerHTML='<img id="sceneBg" class="scene-bg" src="'+IMAGES[bgKey]+'" alt=""><img id="npcImg" class="char-portrait npc-pos" src="'+IMAGES[npcKey]+'" alt=""><img id="goroImg" class="char-portrait goro-pos" src="'+IMAGES.goro_think+'" alt=""><div class="hotspot" id="spot1" onclick="findClue(0)"><div class="hs-ring"><i class="fas fa-search"></i></div></div><div class="hotspot" id="spot2" onclick="findClue(1)"><div class="hs-ring"><i class="fas fa-search"></i></div></div>'}
+function setGoro(){var img=document.getElementById('goroImg');if(img)img.src=IMAGES.goro_think}
+function setGoroHappy(){var img=document.getElementById('goroImg');if(!img)return;img.src=IMAGES.goro_happy;img.classList.remove('react');void img.offsetWidth;img.classList.add('react')}
+function setNpcMouth(){}function setBowl(){}function setTokyoItems(){}
+function setNpcForRush(code){var img=document.getElementById('npcImg');if(!img)return;var key=RUSH_NPC[code];if(key&&IMAGES[key])img.src=IMAGES[key];img.classList.remove('react');void img.offsetWidth;img.classList.add('react')}
+function getNpcImageForChapter(chId){return IMAGES[CHAPTER_NPC[chId]]||''}
+function getSpeakerPortrait(speaker){if(speaker.indexOf('Goro')>=0||speaker.indexOf('Narrator')>=0)return IMAGES.goro_think;return getNpcImageForChapter(currentChapter)}
+function typeWrite(t,el,cb){clearTimeout(typeTimer);el.innerHTML='';var i=0;(function f(){if(i<t.length){el.innerHTML+=t.charAt(i);i++;typeTimer=setTimeout(f,28)}else if(cb)cb()})()}
+function shakeScene(){scene.classList.remove('shake');void scene.offsetWidth;scene.classList.add('shake');setTimeout(function(){scene.classList.remove('shake')},500)}
+
+function setupChapterIntro(chId){var ch=chapters.find(function(x){return x.id===chId});$('introBadge').textContent='Pragmatic Quest';$('introTitle').textContent=ch.introTitle;$('introSub').textContent=ch.introSub;$('introDesc').textContent=ch.introDesc;$('introReward').innerHTML='<i class="fas fa-trophy"></i> Reward: '+ch.introReward;$('introBtn').innerHTML='<i class="fas '+ch.introIcon+'"></i>&nbsp; Enter';$('introEp').textContent=ch.introDiff;$('intro').classList.remove('hidden');buildScene(chId);currentActs=getChapterActs(chId);scene.style.filter='';resOverlay.className='result-overlay'}
+function startGame(){$('intro').classList.add('hidden');var s=getSavedAct(currentChapter);if(s>=currentActs.length)s=0;setTimeout(function(){loadAct(s)},600)}
+
+function loadAct(idx){act=idx;cluesFound=0;foundClues={};var a=currentActs[idx];if(!a)return;hudAct.textContent=a.label;if(a.onEnter)a.onEnter();izZone.classList.remove('show');var s1=document.getElementById('spot1'),s2=document.getElementById('spot2');if(s1)s1.style.display='none';if(s2)s2.style.display='none';dlgPanel.classList.remove('show');if(a.clues)a.clues.forEach(function(c,i){var sp=document.getElementById('spot'+(i+1));if(sp){sp.style.top=c.top;sp.style.left=c.left}});dlgQueue=a.dialogue;dlgIdx=0;afterDlgCb=function(){if(a.afterDialogue==='showClues')showCluePhase();else showInteraction()};setTimeout(function(){showNextDialogue()},400)}
+function showNextDialogue(){if(dlgIdx>=dlgQueue.length){dlgPanel.classList.remove('show');if(afterDlgCb)afterDlgCb();return}var d=dlgQueue[dlgIdx];var portrait=getSpeakerPortrait(d.speaker);$('dlgPortrait').src=portrait;dlgSpeaker.textContent=d.speaker;dlgHint.classList.remove('vis');dlgPanel.classList.add('show');typeWrite(d.text,dlgText,function(){dlgHint.classList.add('vis')})}
+function advanceDialogue(){dlgIdx++;showNextDialogue()}
+function showCluePhase(){var a=currentActs[act];if(!a||!a.clues)return showInteraction();a.clues.forEach(function(c,i){var sp=document.getElementById('spot'+(i+1));if(sp)sp.style.display='block'})}
+function findClue(idx){if(foundClues[idx])return;foundClues[idx]=true;cluesFound++;var a=currentActs[act];var sp=document.getElementById('spot'+(idx+1));if(sp)sp.style.display='none';clueTextEl.textContent=a.clues[idx].text;clueToast.classList.add('show')}
+function dismissClue(){clueToast.classList.remove('show');var a=currentActs[act];var n=a.clues?a.clues.length:0;if(cluesFound>=n)setTimeout(showInteraction,300)}
+
+function showInteraction(){var a=currentActs[act],inter=a.interaction;if(!inter)return;izInner.innerHTML='';switch(inter.type){case'cards':buildCardsUI(inter);break;case'drag':buildDragUI(inter);break;case'sequence':buildSequenceUI(inter);break;case'slider':buildSliderUI(inter);break;case'rapid':buildRapidUI(inter);break;case'qte_hold':buildQTEHoldUI(inter);break;case'bossrush':buildBossRushUI(inter);break;case'finalboss':buildFinalBossUI(inter);break}izZone.classList.add('show')}
+
+function buildCardsUI(inter){var h='<div class="iz-prompt">'+inter.prompt+'</div><div class="cards-wrap">';inter.cards.forEach(function(c,i){h+='<div class="att-card" id="card-'+i+'" onclick="pickCard('+i+')"><div class="card-icon">'+c.icon+'</div><div class="card-label">'+c.label+'</div><div class="card-sub">'+c.sub+'</div></div>'});h+='</div>';izInner.innerHTML=h}
+function pickCard(idx){var a=currentActs[act],inter=a.interaction,c=inter.cards[idx];if(c.isQTE){izZone.classList.remove('show');setTimeout(startSlurpQTE,300);return}var all=izInner.querySelectorAll('.att-card');if(c.correct){all.forEach(function(el,i){if(i===idx)el.classList.add('correct');else el.classList.add('locked')});setTimeout(function(){izZone.classList.remove('show');showResult(true,c.feedback,c.xp||25)},900)}else{var w=all[idx];w.classList.add('wrong');setTimeout(function(){w.classList.add('shatter');w.style.visibility='hidden';['tl','tr','bl','br'].forEach(function(p){var pc=document.createElement('div');pc.className='shatter-piece '+p;pc.style.background='rgba(231,76,60,.3)';pc.style.border='2px solid var(--fail)';w.appendChild(pc)});all.forEach(function(el,i){if(i!==idx)el.classList.add('locked')});shakeScene()},200);setTimeout(function(){izZone.classList.remove('show');showResult(false,c.feedback,0)},1200)}}
+
+function buildDragUI(inter){var h='<div class="iz-prompt">'+inter.prompt+'</div><div class="drag-targets">';inter.targets.forEach(function(t){h+='<div class="drag-target" onclick="handleDrag(\''+t.id+'\')"><div class="dt-icon">'+t.icon+'</div><div class="dt-label">'+t.label+'</div><div class="dt-sub">'+t.sub+'</div></div>'});h+='</div>';izInner.innerHTML=h}
+function handleDrag(id){var inter=currentActs[act].interaction;izZone.classList.remove('show');if(id===inter.correct)showResult(true,inter.feedbackOk,inter.xp);else showResult(false,inter.feedbackFail,0)}
+
+function buildSequenceUI(inter){window._seqStep=0;window._seqItems=inter.items;var h='<div class="seq-wrap"><div class="iz-prompt">'+inter.prompt+'</div><div style="font-size:28px;margin:8px 0">🫧</div><div class="seq-items">';inter.items.forEach(function(it,i){h+='<div class="seq-item" id="seq-'+i+'" onclick="clickSeqItem('+i+')"><span>'+it.icon+'</span><div class="seq-item-label">'+it.label+'</div></div>'});h+='</div><div id="seqMsg" style="margin-top:10px;font-size:14px;color:#ccc;min-height:1.5em"></div></div>';izInner.innerHTML=h}
+function clickSeqItem(idx){var items=window._seqItems,step=window._seqStep;if(items[idx].order===step+1){document.getElementById('seq-'+idx).classList.add('done');window._seqStep++;document.getElementById('seqMsg').innerHTML='<span style="color:var(--ok)">✓ Correct!</span>';if(window._seqStep>=items.length)setTimeout(function(){izZone.classList.remove('show');showResult(true,currentActs[act].interaction.feedbackOk,currentActs[act].interaction.xp)},800)}else{var el=document.getElementById('seq-'+idx);el.classList.add('wrong');setTimeout(function(){el.classList.remove('wrong')},500);document.getElementById('seqMsg').innerHTML='<span style="color:var(--fail)">Wrong order!</span>'}}
+
+function buildSliderUI(inter){var h='<div class="slider-wrap"><div class="iz-prompt">'+inter.prompt+'</div><div class="slider-visual"><div>';inter.zones.forEach(function(z){h+='<div class="slider-zone" style="top:'+z.min+'%;height:'+(z.max-z.min)+'%;background:'+z.color+'"><span>'+z.label+'</span></div>'});h+='</div><div class="slider-hands" id="sliderHands" style="top:50%">🙏</div><div class="slider-indicator" id="sliderInd" style="top:50%"></div></div><input type="range" class="slider-input" id="sliderVal" min="0" max="100" value="50" oninput="updateSlider(this.value)"><div style="margin-top:8px"><button class="slider-confirm" onclick="confirmSlider()">Confirm</button></div></div>';izInner.innerHTML=h}
+function updateSlider(v){document.getElementById('sliderHands').style.top=v+'%';document.getElementById('sliderInd').style.top=v+'%'}
+function confirmSlider(){var v=parseInt(document.getElementById('sliderVal').value,10),inter=currentActs[act].interaction,ok=false;inter.zones.forEach(function(z){if(v>=z.min&&v<z.max&&z.label.indexOf('Perfect')>=0)ok=true});izZone.classList.remove('show');if(ok)showResult(true,inter.feedbackOk,inter.xp);else showResult(false,inter.feedbackFail,0)}
+
+function buildRapidUI(inter){window._rapidClicks=0;window._rapidDone=false;window._rapidTarget=inter.targetClicks;window._rapidTime=inter.timeLimit;var h='<div class="rapid-wrap"><div class="iz-prompt">'+inter.prompt+'</div><div class="rapid-target" id="rapidTarget" onclick="rapidClick()">'+(inter.emoji||'☕')+'</div><div class="rapid-bar"><div class="rapid-fill" id="rapidFill"></div></div><div id="rapidTimer" style="color:var(--gold);font-weight:700;font-size:18px">'+inter.timeLimit+'s</div></div>';izInner.innerHTML=h;window._rapidStart=Date.now();window._rapidInterval=setInterval(function(){if(window._rapidDone)return;var r=Math.max(0,window._rapidTime-(Date.now()-window._rapidStart)/1000);document.getElementById('rapidTimer').textContent=r.toFixed(1)+'s';if(r<=0){window._rapidDone=true;clearInterval(window._rapidInterval);izZone.classList.remove('show');showResult(false,currentActs[act].interaction.feedbackFail,0)}},100)}
+function rapidClick(){if(window._rapidDone)return;window._rapidClicks++;var p=Math.min(100,(window._rapidClicks/window._rapidTarget)*100);document.getElementById('rapidFill').style.width=p+'%';var t=document.getElementById('rapidTarget');t.style.transform='scale(.9) rotate('+(Math.random()*20-10)+'deg)';setTimeout(function(){t.style.transform=''},100);if(window._rapidClicks>=window._rapidTarget){window._rapidDone=true;clearInterval(window._rapidInterval);setTimeout(function(){izZone.classList.remove('show');showResult(true,currentActs[act].interaction.feedbackOk,currentActs[act].interaction.xp)},400)}}
+
+function buildQTEHoldUI(inter){window._holdDone=false;window._holdVal=0;window._holdActive=false;var title=inter.title||'EMBRACE!';var emoji=inter.emoji||'🤗';var h='<div class="qte-wrap"><div class="qte-title"><i class="fas fa-hand-holding-heart"></i> '+title+'</div><div class="qte-subtitle">Hold — release in <span style="color:var(--ok);font-weight:700">GREEN</span>!</div><div class="meter-track" id="holdTrack"><div class="meter-zone" style="left:0;width:30%;background:rgba(52,152,219,.2)"><span class="meter-zone-label" style="left:5px">Weak</span></div><div class="meter-zone" style="left:30%;width:40%;background:rgba(46,204,113,.15)"><span class="meter-zone-label" style="left:30%">Perfect</span></div><div class="meter-zone" style="right:0;width:30%;background:rgba(231,76,60,.2)"><span class="meter-zone-label" style="right:5px">Too Much</span></div><div class="meter-needle" id="holdNeedle" style="left:0"></div></div><div class="meter-btn" id="holdBtn" onmousedown="holdStart()" onmouseup="holdRelease()" ontouchstart="holdStart()" ontouchend="holdRelease()">'+emoji+' HOLD</div></div>';izInner.innerHTML=h}
+function holdStart(){if(window._holdDone)return;window._holdActive=true;window._holdVal=0;cancelAnimationFrame(window._holdAF);(function f(){if(!window._holdActive||window._holdDone)return;window._holdVal=Math.min(100,window._holdVal+1.5);var t=document.getElementById('holdTrack'),n=document.getElementById('holdNeedle');if(t&&n)n.style.left=((window._holdVal/100)*(t.offsetWidth-n.offsetWidth))+'px';window._holdAF=requestAnimationFrame(f)})()}
+function holdRelease(){if(window._holdDone)return;window._holdActive=false;window._holdDone=true;cancelAnimationFrame(window._holdAF);var v=window._holdVal,inter=currentActs[act].interaction;izZone.classList.remove('show');if(v>=30&&v<=70)showResult(true,inter.feedbackOk,inter.xp);else showResult(false,inter.feedbackFail,0)}
+
+function startSlurpQTE(){izInner.innerHTML='<div class="qte-wrap"><div class="qte-title"><i class="fas fa-volume-up"></i> SLURP!</div><div class="qte-subtitle">Hit in the <span style="color:#e74c3c;font-weight:700">RED ZONE</span>!</div><div class="meter-track" id="meterTrack"><div class="meter-zone quiet"><span class="meter-zone-label">Quiet 🤫</span></div><div class="meter-zone medium"></div><div class="meter-zone loud"><span class="meter-zone-label">LOUD 😤</span></div><div class="meter-needle" id="meterNeedle"></div></div><div id="slurpCount" style="color:#ffd700;font-weight:700;font-size:16px;margin-bottom:10px">0 / 3</div><div class="meter-btn" onclick="hitSlurp()">🍜 SLURP!</div><div id="slurpMsg" style="margin-top:10px;font-size:14px;color:#ccc;height:1.5em"></div></div>';izZone.classList.add('show');var needle=$('meterNeedle'),track=$('meterTrack'),pos=0,dir=1,speed=2.5;window._slurpOk=0;window._slurpDone=false;cancelAnimationFrame(meterAnim);(function f(){if(window._slurpDone)return;var tw=track.offsetWidth,nw=needle.offsetWidth;pos+=dir*speed;if(pos>=tw-nw){pos=tw-nw;dir=-1}if(pos<=0){pos=0;dir=1}needle.style.left=pos+'px';window._needlePos=pos/tw;meterAnim=requestAnimationFrame(f)})()}
+function hitSlurp(){if(window._slurpDone)return;var p=window._needlePos;if(p>=.65){window._slurpOk++;$('slurpCount').textContent=window._slurpOk+' / 3';$('slurpMsg').innerHTML='<span style="color:#2ecc71">ズルズル！</span>';shakeScene();if(window._slurpOk>=3){window._slurpDone=true;cancelAnimationFrame(meterAnim);setTimeout(function(){izZone.classList.remove('show');showResult(true,"Pragmatic Success! Your slurping tells the chef everything — louder is better in Japan!",25)},600)}}else if(p<.35){$('slurpMsg').innerHTML='<span style="color:#e74c3c">Too quiet!</span>'}else{$('slurpMsg').innerHTML='<span style="color:#f39c12">Medium — aim for red!</span>'}setTimeout(function(){if(!window._slurpDone&&$('slurpMsg'))$('slurpMsg').innerHTML=''},800)}
+
+function buildBossRushUI(inter){window._rush={timer:inter.timeLimit,currentQ:0,results:[],done:false,questions:inter.questions,penalty:inter.penalty};var rushNpcKey=RUSH_NPC[{Japan:'jp',Shanghai:'cn','Hong Kong':'hk',Thailand:'th',Dubai:'ae',France:'fr',Britain:'gb'}[inter.country]]||'npc_max';var npcPortrait=IMAGES[rushNpcKey]||'';var h='<div class="rush-wrap"><div class="rush-header"><div class="rush-flag">'+inter.flag+'</div>';if(npcPortrait)h+='<img class="rush-npc-portrait" src="'+npcPortrait+'" alt="">';h+='<div class="rush-country">'+inter.country+'</div><div class="rush-timer-wrap"><div class="rush-timer-ring" id="rushRing"><div class="rush-timer-num" id="rushTimerNum">'+inter.timeLimit+'</div></div></div></div><div class="rush-progress" id="rushProg"></div><div class="rush-q" id="rushQ"></div><div class="rush-choices" id="rushChoices"></div><div class="rush-explain" id="rushExplain"></div></div>';izInner.innerHTML=h;showRushQuestion(0);window._rush.startTime=Date.now();clearInterval(window._rushInterval);window._rushInterval=setInterval(function(){if(window._rush.done)return;var elapsed=(Date.now()-window._rush.startTime)/1000;var remain=Math.max(0,window._rush.timer-elapsed);var el=document.getElementById('rushTimerNum');if(el)el.textContent=Math.ceil(remain);var ring=document.getElementById('rushRing');if(ring){if(remain<=15)ring.classList.add('danger');else ring.classList.remove('danger')}if(remain<=0){window._rush.done=true;clearInterval(window._rushInterval);izZone.classList.remove('show');showResult(false,"⏰ Time's up! Try again!",0)}},100)}
+function showRushQuestion(idx){var r=window._rush,q=r.questions[idx];var prog='';for(var i=0;i<r.questions.length;i++){if(i<idx)prog+='<span class="done">●</span> ';else if(i===idx)prog+='<span class="current">●</span> ';else prog+='<span>○</span> '}document.getElementById('rushProg').innerHTML=prog;document.getElementById('rushQ').innerHTML=q.text;document.getElementById('rushExplain').className='rush-explain';document.getElementById('rushExplain').textContent='';var shuffled=q.opts.slice();if(Math.random()>.5)shuffled.reverse();var h='';shuffled.forEach(function(o,i){h+='<div class="rush-card" id="rushC'+i+'" onclick="rushPick('+i+','+o.correct+')"><div class="rush-card-label">'+o.label+'</div><div class="rush-card-sub">'+o.sub+'</div></div>'});document.getElementById('rushChoices').innerHTML=h;setGoro()}
+function rushPick(idx,correct){if(window._rush.done)return;var r=window._rush,q=r.questions[r.currentQ];var cards=document.querySelectorAll('.rush-card');cards.forEach(function(c){c.style.pointerEvents='none'});document.getElementById('rushC'+idx).classList.add(correct?'correct':'wrong');cards.forEach(function(c,i){if(i!==idx)c.classList.add('locked')});var expl=document.getElementById('rushExplain');expl.textContent=q.explain;expl.classList.add('show');if(!correct){r.timer-=r.penalty;var fl=$('rushFlash');fl.className='rush-flash red';setTimeout(function(){fl.className='rush-flash'},300);var pen=$('rushPenalty');pen.className='rush-penalty show';setTimeout(function(){pen.className='rush-penalty'},1000);shakeScene();r.results.push(false);var gi=document.getElementById('goroImg');if(gi){gi.classList.remove('shake-bad');void gi.offsetWidth;gi.classList.add('shake-bad')}}else{var fl=$('rushFlash');fl.className='rush-flash green';setTimeout(function(){fl.className='rush-flash'},300);r.results.push(true);setGoroHappy()}setTimeout(function(){r.currentQ++;if(r.currentQ>=r.questions.length){var allOk=r.results.every(function(x){return x===true});window._rush.done=true;clearInterval(window._rushInterval);izZone.classList.remove('show');if(allOk)showResult(true,"🎯 Perfect! You cleared the "+currentActs[act].interaction.country+" challenge!",15);else showResult(false,"❌ Not all answers were correct. Retry!",0)}else{showRushQuestion(r.currentQ)}},1500)}
+
+function buildFinalBossUI(inter){window._boss={currentQ:0,questions:inter.questions,done:false};var h='<div class="boss-wrap"><img class="boss-npc-img" src="'+IMAGES.npc_max+'" alt="Max"><div class="boss-name">'+inter.bossName+'</div><div class="boss-title">'+inter.bossTitle+'</div><div class="boss-qnum" id="bossQNum"></div><div class="boss-scenario" id="bossScenario"></div><div class="boss-goro" id="bossGoro"></div><div class="rush-choices" id="bossChoices"></div><div class="rush-explain" id="bossExplain"></div></div>';izInner.innerHTML=h;showBossQuestion(0)}
+function showBossQuestion(idx){var b=window._boss,q=b.questions[idx];document.getElementById('bossQNum').textContent='Q'+(idx+1)+' / '+b.questions.length;document.getElementById('bossScenario').innerHTML='Max: '+q.scenario;document.getElementById('bossGoro').textContent='Goro thinks: "'+q.goro+'"';document.getElementById('bossExplain').className='rush-explain';document.getElementById('bossExplain').textContent='';var shuffled=q.opts.slice();if(Math.random()>.5)shuffled.reverse();var h='';shuffled.forEach(function(o,i){h+='<div class="rush-card" id="bossC'+i+'" onclick="bossPick('+i+','+o.correct+')"><div class="rush-card-label">'+o.label+'</div><div class="rush-card-sub">'+o.sub+'</div></div>'});document.getElementById('bossChoices').innerHTML=h;setGoro()}
+function bossPick(idx,correct){if(window._boss.done)return;var b=window._boss,q=b.questions[b.currentQ];var cards=document.querySelectorAll('.rush-card');cards.forEach(function(c){c.style.pointerEvents='none'});document.getElementById('bossC'+idx).classList.add(correct?'correct':'wrong');cards.forEach(function(c,i){if(i!==idx)c.classList.add('locked')});var expl=document.getElementById('bossExplain');expl.textContent=q.explain;expl.classList.add('show');if(!correct){shakeScene();var fl=$('rushFlash');fl.className='rush-flash red';setTimeout(function(){fl.className='rush-flash'},300);setTimeout(function(){showBossQuestion(b.currentQ)},2000)}else{setGoroHappy();var fl=$('rushFlash');fl.className='rush-flash green';setTimeout(function(){fl.className='rush-flash'},300);setTimeout(function(){b.currentQ++;if(b.currentQ>=b.questions.length){b.done=true;izZone.classList.remove('show');showGrandFinale()}else showBossQuestion(b.currentQ)},1500)}}
+
+function showGrandFinale(){xp+=50;xpDisp.textContent=xp+' XP';saveProgress();setGoroHappy();var items=[{f:'🇯🇵',n:'Artisan Hand-pulled Noodles'},{f:'🇨🇳',n:'Premium Jinhua Ham'},{f:'🇭🇰',n:'20-year Aged Tangerine Peel'},{f:'🇹🇭',n:'Royal Premium Fish Sauce'},{f:'🇦🇪',n:'World\'s Finest Saffron'},{f:'🇫🇷',n:'Périgord Black Truffle'},{f:'🇬🇧',n:'Vintage Somerset Cheddar'},{f:'🇺🇸',n:'Bourbon Barrel-Aged Smoked Soy Sauce'}];var ih='';items.forEach(function(it){ih+='<div class="vi">'+it.f+' '+it.n+'</div>'});var html='<div class="res-icon">🏆🍜🏆</div><div class="res-title victory">JOURNEY COMPLETE!</div><div class="res-text">Max laughs: <em>"Haha! I love the confidence, kid. Take it. But I expect an invite to the tasting!"</em></div><div class="res-xp">+50 Cultural IQ (Final Bonus)</div><div style="margin:14px 0;padding:14px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.3);border-radius:14px;color:#333"><div style="font-weight:700;margin-bottom:8px;color:var(--gold)"><i class="fas fa-trophy"></i> ALL 8 INGREDIENTS COLLECTED</div><div class="victory-items">'+ih+'</div><div class="victory-dish">🍜 The Ultimate Global Umami Mazesoba 🍜</div><div style="font-size:13px;color:#666;line-height:1.6">Hand-pulled noodles as the base. Melted Somerset Cheddar & Périgord Black Truffle. Saffron-golden broth. Seasoned with Jinhua Ham, Aged Tangerine Peel, Royal Fish Sauce & Bourbon Barrel-Aged Smoked Soy Sauce.</div></div><div class="res-xp" style="font-size:20px">Total Cultural IQ: '+xp+' XP</div><button class="res-btn gold" onclick="markChapterCleared(8);showChapterMenu()"><i class="fas fa-map"></i> View Journey Map</button>';resCard.className='res-card victory';resCard.innerHTML=html;resOverlay.className='result-overlay show ok-bg'}
+
+function showResult(success,feedback,pts){shakeScene();xp+=pts;xpDisp.textContent=xp+' XP';if(success)saveActProgress(currentChapter,act);saveProgress();if(success){setGoroHappy()}else{setGoro();scene.style.filter='saturate(.35) brightness(.75)'}var isLast=(act===currentActs.length-1);var isVictory=success&&isLast;var ch=chapters.find(function(x){return x.id===currentChapter});var html='<div class="res-icon">'+(isVictory?'🏆':(success?'🎉':'💔'))+'</div>';html+='<div class="res-title '+(isVictory?'victory':(success?'ok':'fail'))+'">'+(isVictory?'Level Complete!':(success?'Pragmatic Success!':'Try Again!'))+'</div>';html+='<div class="res-text">'+feedback+'</div>';if(pts>0)html+='<div class="res-xp">+'+pts+' Cultural IQ</div>';if(isVictory&&currentChapter<8){html+='<div style="margin:14px 0;padding:12px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:14px;color:#333"><i class="fas fa-trophy" style="color:var(--gold);margin-right:6px"></i><strong>Item Acquired:</strong> '+ch.introReward+'</div>';html+='<button class="res-btn blue" onclick="completeChapterAndGoNext()"><i class="fas fa-plane"></i> Next Journey</button> ';html+='<button class="res-btn gold" onclick="completeAndMenu()"><i class="fas fa-map"></i> Chapters</button>'}else if(success&&!isLast){html+='<button class="res-btn ok" onclick="nextAct()"><i class="fas fa-arrow-right"></i> Next</button>'}else if(!success){html+='<button class="res-btn fail" onclick="retryAct()"><i class="fas fa-redo"></i> Retry</button>'}resCard.className='res-card '+(isVictory?'victory':(success?'ok':'fail'));resCard.innerHTML=html;resOverlay.className='result-overlay show '+(success?'ok-bg':'fail-bg')}
+function nextAct(){resOverlay.className='result-overlay';scene.style.filter='';loadAct(act+1)}
+function retryAct(){resOverlay.className='result-overlay';scene.style.filter='';loadAct(act)}
+function completeChapterAndGoNext(){markChapterCleared(currentChapter);resOverlay.className='result-overlay';scene.style.filter='';var ch=chapters.find(function(x){return x.id===currentChapter}),nxt=chapters.find(function(x){return x.id===currentChapter+1});if(nxt)playTravel(ch.to,nxt.to,'Chapter unlocked!',function(){showChapterMenu()});else showChapterMenu()}
+function completeAndMenu(){markChapterCleared(currentChapter);resOverlay.className='result-overlay';scene.style.filter='';showChapterMenu()}
+
+/* ╔═══════════════════════════════════════════════════════════════╗
+   ║            EXPANDED CHAPTER DATA — 10 ACTS EACH              ║
+   ╚═══════════════════════════════════════════════════════════════╝ */
+function getChapterActs(chId){
+var T=10; /* acts per chapter label helper */
+switch(chId){
+
+/* =========================================================
+   CHAPTER 1 — TOKYO 🇯🇵  (10 Acts)
+   Concepts: Strategic Humility, Reading the Air, Indirect Refusal,
+   Nonverbal Cues, In-group Language, Silence, Presupposition
+   ========================================================= */
+case 1:return[
+{id:'t1',label:'Act 1/'+T,
+clues:[{top:'43%',left:'53%',text:"That soup pot — spotlessly clean! An obsessive craftsman."},{top:'48%',left:'20%',text:"The chef's thick, calloused hands — decades of mastery."}],
+dialogue:[{speaker:'Ramen Master',text:"Sigh... Welcome. Our humble shop doesn't have much. The soup is just something rough I throw together..."},{speaker:'Goro (inner voice)',text:"He says it's nothing special... but something feels off. Let me look around."}],
+afterDialogue:'showClues',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'The chef calls his ramen "rough." How should Goro respond?',cards:[
+{icon:'🚶',label:'Take It Literally',sub:'"I see... I\'ll try somewhere else then."',correct:false,feedback:"Pragmatic Failure! You took his strategic humility at face value. In Japan, self-deprecation is a politeness strategy, not a literal description.",xp:0},
+{icon:'🔥',label:'Artisan Empathy',sub:'"That spotless pot tells me this is a masterpiece!"',correct:true,feedback:"Pragmatic Success! You decoded his Strategic Humility (謙遜 kenzon). Japanese craftsmen downplay their work to show dedication, not inadequacy.",xp:25}
+]}},
+
+{id:'t2',label:'Act 2/'+T,
+dialogue:[{speaker:'Narrator',text:"Goro approaches the counter. The chef gives a slight nod. How deep should Goro bow?"},{speaker:'Goro (inner voice)',text:"Too deep = I'm begging. Too shallow = rude. Match his status as a craftsman..."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'slider',prompt:'Adjust your bow angle. Find the Perfect zone for greeting an artisan.',
+zones:[{min:0,max:25,label:'Too Casual — Rude',color:'rgba(231,76,60,.3)'},{min:25,max:65,label:'Perfect! Respectful 30°',color:'rgba(46,204,113,.3)'},{min:65,max:100,label:'Too Deep — Groveling',color:'rgba(231,76,60,.3)'}],
+feedbackOk:"Pragmatic Success! A 30° bow (敬礼 keirei) shows respect without subordination. Social Deixis in action — your body language signals your social relationship!",
+feedbackFail:"Pragmatic Failure! Your bow sent the wrong social signal. In Japanese Deixis, bow angle precisely encodes your perceived social relationship.",xp:20}},
+
+{id:'t3',label:'Act 3/'+T,
+dialogue:[{speaker:'Ramen Master',text:"(Glances at the counter seat directly in front of his station, then back at Goro)"},{speaker:'Goro (inner voice)',text:"He looked at that specific seat... In Japan, silence speaks louder than words."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'The chef glanced at a specific counter seat. What does Goro do?',cards:[
+{icon:'🪑',label:'Choose a Table',sub:'"I\'ll sit at that table in the back."',correct:false,feedback:"Pragmatic Failure! His glance was an Indirect Speech Act — a nonverbal directive. By looking at the counter seat, he was telling you to sit there, where he can interact with you directly.",xp:0},
+{icon:'👀',label:'Sit at the Counter',sub:'Follow his gaze and sit at the indicated seat.',correct:true,feedback:"Pragmatic Success! You decoded his nonverbal Indirect Speech Act. In high-context Japanese culture, a glance IS a directive. You read the air (空気を読む)!",xp:25}
+]}},
+
+{id:'t4',label:'Act 4/'+T,
+dialogue:[{speaker:'Ramen Master',text:"What would you like? ... (Pauses) ...The shoyu is what I usually recommend to first-timers."},{speaker:'Goro (inner voice)',text:"He 'recommends' it... but the way he said it, it's more like a polite command. This is an indirect speech act."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'The chef "recommends" the shoyu. What is the pragmatic meaning?',cards:[
+{icon:'📖',label:'Browse the Full Menu',sub:'"Actually, let me see all the options..."',correct:false,feedback:"Pragmatic Failure! His 'recommendation' was a Presupposition — it presupposes that you, as a first-timer, should trust his expertise. Questioning it challenges his professional face.",xp:0},
+{icon:'🍜',label:'Accept the Recommendation',sub:'"Shoyu it is! I trust the master."',correct:true,feedback:"Pragmatic Success! You recognized the Indirect Speech Act. His 'recommendation' was really a polite directive. By accepting, you honor his expertise and the senpai-kohai dynamic.",xp:25}
+]}},
+
+{id:'t5',label:'Act 5/'+T,
+dialogue:[{speaker:'Narrator',text:"The chef places green tea and a small towel before Goro. There is a ritual to follow."},{speaker:'Goro (inner voice)',text:"Towel first to clean hands, then tea. The order matters — it shows I understand the ritual."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'sequence',prompt:'Perform the pre-meal ritual in order!',
+items:[{id:'towel',icon:'🧴',label:'Hot Towel',order:1},{id:'hands',icon:'🙏',label:'Itadakimasu',order:2},{id:'tea',icon:'🍵',label:'Sip Tea',order:3},{id:'wait',icon:'⏳',label:'Wait Quietly',order:4}],
+feedbackOk:"Pragmatic Success! The sequence shows cultural literacy: clean hands → express gratitude (Itadakimasu is a performative speech act) → sip tea → wait with patience. Each step is a pragmatic signal of respect.",
+feedbackFail:"Wrong sequence! Each step in the ritual is an ordered Performative Speech Act that signals your understanding of Japanese dining culture.",xp:20}},
+
+{id:'t6',label:'Act 6/'+T,
+dialogue:[{speaker:'Ramen Master',text:"This broth... I've been working on it for 18 years. (Sighs) Still not right. Maybe another decade..."},{speaker:'Goro (inner voice)',text:"He says it's 'not right' after 18 years? This is Grice's Quality Maxim being flouted — he's conveying something else entirely."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'The chef says his 18-year broth is "still not right." What is the Conversational Implicature?',cards:[
+{icon:'😟',label:'Offer Sympathy',sub:'"Don\'t be so hard on yourself!"',correct:false,feedback:"Pragmatic Failure! He's flouting Grice's Quality Maxim to generate a Conversational Implicature. He doesn't literally mean it's bad — he's expressing endless devotion to perfection. Sympathy misses the point entirely.",xp:0},
+{icon:'🎌',label:'Admire the Devotion',sub:'"18 years of pursuit... That dedication IS perfection."',correct:true,feedback:"Pragmatic Success! You decoded the Conversational Implicature perfectly. By saying it's 'not right,' he implicates that perfection is a journey, not a destination. Your response honors his Craftsman's Ethos.",xp:25}
+]}},
+
+{id:'t7',label:'Act 7/'+T,
+clues:[{top:'38%',left:'58%',text:"The broth is scalding hot... In Western manners, eat quietly. But this is Japan."},{top:'44%',left:'30%',text:"The chef watches intently. How you eat IS the feedback."}],
+dialogue:[{speaker:'Narrator',text:"A magnificent bowl of amber ramen arrives. The chef watches silently..."},{speaker:'Goro (inner voice)',text:"He's staring — waiting for my reaction. In Japan, how you eat is communicative behavior."}],
+afterDialogue:'showClues',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'How should Goro eat the ramen?',cards:[
+{icon:'🤫',label:'Quiet & Proper',sub:'Eat silently — good Western manners.',correct:false,feedback:"Pragmatic Failure! Silent eating signals displeasure in Japan. This is a cross-cultural pragmatic failure — Western table norms ≠ Japanese norms.",xp:0},
+{icon:'😋',label:'SLURP Loudly!',sub:'Show appreciation through sound!',correct:true,isQTE:true,feedback:"",xp:25}
+]}},
+
+{id:'t8',label:'Act 8/'+T,
+clues:[{top:'36%',left:'28%',text:"The chef frowns subtly when mentioning garlic. His face says: garlic would ruin my broth."},{top:'42%',left:'62%',text:"The broth has delicate layers of dashi, soy, and mirin. Garlic would overwhelm it all."}],
+dialogue:[{speaker:'Ramen Master',text:"(Frowns slightly) By the way... would you like a lot of garlic?"},{speaker:'Goro (inner voice)',text:"His face changed when he said 'garlic.' The literal question says 'want garlic?' but his expression says 'please don't.'"}],
+afterDialogue:'showClues',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'The chef offers garlic — but his nonverbal cues contradict his words.',cards:[
+{icon:'🧄',label:'Load It Up!',sub:'"Yes, lots of garlic please!"',correct:false,feedback:"Pragmatic Failure! You ignored his Face-Threatening Act mitigation. His frown + offer = a polite way of saying 'I hope you don't.' The verbal and nonverbal channels contradicted — always trust the nonverbal in Japan.",xp:0},
+{icon:'✨',label:'Read the Air',sub:'"No thanks — the broth is already perfect."',correct:true,feedback:"Pragmatic Success! You decoded the contradiction between verbal and nonverbal channels. In Japan, when words and expression conflict, the expression carries the true Illocutionary Force.",xp:25}
+]}},
+
+{id:'t9',label:'Act 9/'+T,
+dialogue:[{speaker:'Regular Customer',text:"(To Goro) First time? Try asking for 'barikata' next time."},{speaker:'Goro (inner voice)',text:"'Barikata' — extra firm noodles. That's in-group jargon. Using it would signal I belong..."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'rapid',prompt:'Show your ramen enthusiasm! Slurp down the remaining noodles rapidly!',emoji:'🍜',targetClicks:10,timeLimit:5,
+feedbackOk:"Pragmatic Success! Your enthusiastic eating AND learning in-group terminology ('barikata') signals Community of Practice membership. The regular customer nods approvingly.",
+feedbackFail:"Too slow! Your lukewarm enthusiasm fails to signal genuine passion — a key pragmatic signal in Japanese artisan culture.",xp:20}},
+
+{id:'t10',label:'Act 10/'+T,
+dialogue:[{speaker:'Narrator',text:"The bill is ¥900. Goro pulls out a ¥10,000 bill. A change tray sits on the counter."},{speaker:'Goro (inner voice)',text:"Tipping in Japan is an insult — it implies the craftsman's pricing is insufficient. Use the tray, pay exactly, bow."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'drag',prompt:'Where should Goro place the money?',
+targets:[{id:'hand',icon:'🤲',label:"Chef's Hand",sub:'"Keep the change — you deserve it!"'},{id:'tray',icon:'📥',label:'Change Tray',sub:'Place money on tray + respectful bow'}],
+correct:'tray',
+feedbackOk:"Pragmatic Success! In Japan, tipping is a Face-Threatening Act that implies the chef underpriced his work. Using the change tray + bow is the pragmatically appropriate farewell. You receive the Artisan Hand-pulled Noodles!",
+feedbackFail:"Pragmatic Failure! Tipping in Japan is a severe Face-Threatening Act. It implies the craftsman's self-determined pricing is inadequate — deeply insulting to his professional identity.",xp:25}}
+];
+
+/* =========================================================
+   CHAPTER 2 — SHANGHAI 🇨🇳  (10 Acts)
+   Concepts: Face (Mianzi/Lian), Strategic Modesty, Guanxi,
+   Bill-fighting, Gift Ritual, Reciprocity, Implicit Requests
+   ========================================================= */
+case 2:return[
+{id:'s1',label:'Act 1/'+T,
+dialogue:[{speaker:'Narrator',text:"On the Bund, a friendly uncle (Wang Zong) just spent 15 minutes taking amazing photos for Goro."},{speaker:'Goro (inner voice)',text:"He went out of his way... Should I offer money? Or is there a better way?"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'How should Goro thank the uncle for the photos?',cards:[
+{icon:'💴',label:'Offer Money',sub:'"Here\'s ¥20 for your trouble."',correct:false,feedback:"Pragmatic Failure! Offering money for a casual favor is a severe Face-Threatening Act in China. It transforms a warm human connection into a cold transaction, destroying 人情 (renqing — human feeling).",xp:0},
+{icon:'📸',label:'Reciprocate the Favor',sub:'"Thanks! Want me to take one for you too?"',correct:true,feedback:"Pragmatic Success! Reciprocal kindness preserves 人情 (renqing). In Chinese Politeness Theory, favors create a web of mutual obligation — reciprocating keeps the relationship balanced.",xp:25}
+]}},
+
+{id:'s2',label:'Act 2/'+T,
+dialogue:[{speaker:'Wang Zong',text:"Xiao Goro! Come come, I found a great restaurant. My treat — you're my guest!"},{speaker:'Goro (inner voice)',text:"He insists on treating me. In China, the host-guest dynamic has strict pragmatic rules..."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Wang Zong insists on treating you. What do you do?',cards:[
+{icon:'💳',label:'Accept Immediately',sub:'"Great, thanks! I\'ll have anything."',correct:false,feedback:"Pragmatic Failure! Accepting too quickly signals greed (没礼貌). Chinese Politeness requires at least 2-3 rounds of 推辞 (refusal ritual) before gracefully accepting.",xp:0},
+{icon:'🙅',label:'Polite Refusal First',sub:'"No no, I can\'t let you pay! Let me treat YOU!"',correct:true,feedback:"Pragmatic Success! The 推辞 (tuici) ritual requires you to refuse first, then insist on paying, then eventually yield gracefully. This push-pull IS the politeness.",xp:25}
+]}},
+
+{id:'s3',label:'Act 3/'+T,
+dialogue:[{speaker:'Narrator',text:"At the restaurant entrance, Wang Zong gestures toward the door."},{speaker:'Goro (inner voice)',text:"In China, who enters first? The host always lets the guest go first — but I should defer back..."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'sequence',prompt:'Perform the door ritual correctly!',
+items:[{id:'defer',icon:'🚪',label:'Defer to Host',order:1},{id:'insist',icon:'🙋',label:'Host Insists',order:2},{id:'enter',icon:'👤',label:'Guest Enters',order:3},{id:'thank',icon:'🙏',label:'Thank Host',order:4}],
+feedbackOk:"Pragmatic Success! The door ritual follows Politeness Theory: first you defer (negative politeness), the host insists (positive face), you yield gracefully, then thank. Each step maintains mutual face.",
+feedbackFail:"Wrong order! Chinese door etiquette is a carefully choreographed face-exchange ritual.",xp:20}},
+
+{id:'s4',label:'Act 4/'+T,
+dialogue:[{speaker:'Narrator',text:"Tea arrives. Wang Zong pours for Goro. When someone pours tea for you in China, there's a specific thank-you gesture."},{speaker:'Goro (inner voice)',text:"Tap the table with two fingers — that's the Cantonese/Chinese gesture meaning 'thank you for pouring.'"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'rapid',prompt:'Tap the table to say thank you! Quick finger taps!',emoji:'🫖',targetClicks:6,timeLimit:4,
+feedbackOk:"Pragmatic Success! The finger-tap (叩手礼 kousholi) is a Conventional Indirect Speech Act — two bent fingers tapping the table mean 'I bow to you in thanks.' It originated from an Emperor's incognito tea-pouring legend!",
+feedbackFail:"Too slow! The finger-tap must be prompt and natural to function as a proper acknowledgment.",xp:20}},
+
+{id:'s5',label:'Act 5/'+T,
+dialogue:[{speaker:'Wang Zong',text:"Order whatever you want! Don't be shy — the menu is yours!"},{speaker:'Goro (inner voice)',text:"If I order expensive dishes, I look greedy. If I order too little, I insult his generosity. The host should lead..."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Wang Zong says "order anything!" How to respond?',cards:[
+{icon:'💰',label:'Order Expensive Items',sub:'"Great! Lobster and abalone please!"',correct:false,feedback:"Pragmatic Failure! Ordering expensive items when someone treats you is a Face-Threatening Act that exploits their generosity. It violates the Maxim of Manner — be orderly and modest.",xp:0},
+{icon:'🤝',label:'Defer to the Host',sub:'"You know this place best — please order for us!"',correct:true,feedback:"Pragmatic Success! Deferring to the host gives them 面子 (face) by acknowledging their expertise and authority. This is a positive politeness strategy that strengthens the host-guest bond.",xp:25}
+]}},
+
+{id:'s6',label:'Act 6/'+T,
+dialogue:[{speaker:'Narrator',text:"The table fills with premium dishes. Wang Zong raises his glass for a toast."},{speaker:'Goro (inner voice)',text:"In Chinese toasting, glass height matters. My glass should be LOWER than his — he's the senior."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'slider',prompt:'Adjust your glass height for the toast. Lower = more respectful to the senior host.',
+zones:[{min:0,max:35,label:'Perfect! Lower shows respect',color:'rgba(46,204,113,.3)'},{min:35,max:65,label:'Equal — only for peers',color:'rgba(241,196,15,.3)'},{min:65,max:100,label:'Higher — disrespectful!',color:'rgba(231,76,60,.3)'}],
+feedbackOk:"Pragmatic Success! Social Deixis in Chinese toasting: glass height precisely encodes your perceived relationship. Lower = respect for seniority. This nonverbal code is non-negotiable in Chinese banquet culture.",
+feedbackFail:"Pragmatic Failure! Your glass position sent the wrong social signal. In Chinese banquet Deixis, glass height relative to the other person's encodes your respect level.",xp:20}},
+
+{id:'s7',label:'Act 7/'+T,
+dialogue:[{speaker:'Wang Zong',text:"(Gesturing at the lavish spread) Just a simple home-style meal — nothing fancy! 随便吃吃 (just eating casually)!"},{speaker:'Goro (inner voice)',text:"The table is covered with premium dishes... Classic strategic modesty. He's fishing for face-giving compliments."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Wang Zong calls this feast "nothing fancy." How to respond?',cards:[
+{icon:'😐',label:'Take It Literally',sub:'"It does look quite home-style."',correct:false,feedback:"Pragmatic Failure! You took his 客气话 (polite talk) at face value. This destroys his face (面子). Strategic modesty in China DEMANDS enthusiastic counter-praise.",xp:0},
+{icon:'🤩',label:'Give Face Generously',sub:'"A royal feast! So lavish! You\'ve gone to such trouble!"',correct:true,feedback:"Pragmatic Success! You gave him tremendous 面子 (mianzi)! In Chinese Politeness Theory, strategic modesty + enthusiastic counter-praise is a cooperative face-exchange ritual. Both parties benefit.",xp:25}
+]}},
+
+{id:'s8',label:'Act 8/'+T,
+dialogue:[{speaker:'Wang Zong',text:"(Sighs casually) My nephew moved to Tokyo recently... finding it hard to make connections there."},{speaker:'Goro (inner voice)',text:"Wait — he's not just sharing a story. This is an implicit request for my social network. This is how 关系 (guanxi) works."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Wang Zong mentions his nephew struggling in Tokyo. What is the Conversational Implicature?',cards:[
+{icon:'😢',label:'Just Sympathize',sub:'"That sounds tough. I hope it works out."',correct:false,feedback:"Pragmatic Failure! You missed the Conversational Implicature. He flouted the Maxim of Relevance — why mention his nephew NOW? Because he's indirectly asking you to help through your network.",xp:0},
+{icon:'🤝',label:'Offer Guanxi Help',sub:'"I know some people in Tokyo — let me introduce him!"',correct:true,feedback:"Pragmatic Success! You decoded the Conversational Implicature perfectly. In Chinese culture, indirect requests through storytelling are a face-saving strategy. Offering guanxi (connections) builds the reciprocal relationship.",xp:25}
+]}},
+
+{id:'s9',label:'Act 9/'+T,
+dialogue:[{speaker:'Narrator',text:"The bill arrives. Wang Zong reaches for it. This is the moment of truth — the bill-fighting ritual."},{speaker:'Goro (inner voice)',text:"I MUST fight for the bill. Not fighting is the ultimate loss of face. But he'll win — that's the script."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'qte_hold',title:'BILL FIGHT!',emoji:'💳',prompt:'Hold to fight for the bill — release in the green zone!',
+feedbackOk:"Pragmatic Success! The 抢单 (qiangdan — bill-fighting) ritual requires vigorous but ultimately yielding effort. You fought hard enough to show sincerity, but let the host win to preserve HIS face. Masterful!",
+feedbackFail:"Pragmatic Failure! Your bill-fighting intensity was wrong. Too weak = you don't care. Too strong = you're actually trying to take his hosting privilege away.",xp:25}},
+
+{id:'s10',label:'Act 10/'+T,
+dialogue:[{speaker:'Wang Zong',text:"(Handing Goro a wrapped package) Just a little something — nothing valuable. 一点小意思."},{speaker:'Goro (inner voice)',text:"He says it's 'nothing' but it's clearly premium Jinhua Ham. I must refuse first, then accept with amplified gratitude."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'drag',prompt:'How to receive the gift?',
+targets:[{id:'grab',icon:'🤲',label:'Take Immediately',sub:'"Thanks!" (Grab it casually)'},{id:'ritual',icon:'🎁',label:'Refuse → Insist → Accept',sub:'Push back twice, then accept with both hands + praise'}],
+correct:'ritual',
+feedbackOk:"Pragmatic Success! The Chinese gift ritual: refuse ('太客气了!'), host insists, refuse again, then accept with BOTH hands + amplify its value ('This is incredible!'). You receive the Premium Jinhua Ham!",
+feedbackFail:"Pragmatic Failure! Grabbing immediately signals greed and skips the entire face-exchange ritual. Always refuse first in Chinese gift-giving pragmatics.",xp:25}}
+];
+
+/* =========================================================
+   CHAPTER 3 — HONG KONG 🇭🇰  (10 Acts)
+   Concepts: Code-Mixing, Efficiency, Sentence-Final Particles,
+   Directness, In-Group Markers, Minimal Politeness
+   ========================================================= */
+case 3:return[
+{id:'h1',label:'Act 1/'+T,
+dialogue:[{speaker:'Narrator',text:"A packed cha chaan teng. The sign reads '冰室' in neon. Goro squeezes through the crowd."},{speaker:'Goro (inner voice)',text:"This place is PACKED. Hong Kong cha chaan tengs run on pure efficiency — no time for pleasantries."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'The waiter points at a table with strangers. What does Goro do?',cards:[
+{icon:'🙋',label:'Ask for Private Table',sub:'"Could I wait for an empty table?"',correct:false,feedback:"Pragmatic Failure! In Hong Kong, requesting a private table is '阻住地球轉' (blocking the Earth from spinning). Table-sharing (搭檯) is a social norm, not an imposition.",xp:0},
+{icon:'🪑',label:'Sit Down Quietly',sub:'Nod, sit, maintain polite distance.',correct:true,feedback:"Pragmatic Success! 'Polite coldness' (禮貌性冷漠) is peak cha chaan teng etiquette. You share space but maintain invisible boundaries — a distinctly HK pragmatic style.",xp:25}
+]}},
+
+{id:'h2',label:'Act 2/'+T,
+dialogue:[{speaker:'Narrator',text:"Hot water, utensils, and an empty basin appear. The tea is NOT for drinking..."},{speaker:'Goro (inner voice)',text:"In HK, you wash utensils with hot tea first. The order: chopsticks → spoon → cup."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'sequence',prompt:'Wash utensils in the correct order!',
+items:[{id:'chop',icon:'🥢',label:'Chopsticks',order:1},{id:'spoon',icon:'🥄',label:'Spoon',order:2},{id:'cup',icon:'🍵',label:'Cup',order:3}],
+feedbackOk:"Pragmatic Success! The utensil-washing ritual is an in-group marker. Doing it correctly signals '識做' (knowing how things are done) — the HK equivalent of cultural competence.",
+feedbackFail:"Wrong order! This ritual is a pragmatic identity test — locals can instantly spot outsiders who don't know the sequence.",xp:20}},
+
+{id:'h3',label:'Act 3/'+T,
+dialogue:[{speaker:'Narrator',text:"Time to get the waiter's attention. He's rushing between tables at light speed."},{speaker:'Goro (inner voice)',text:"Raising my hand politely won't work here. I need the HK attention-grabbing method."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'rapid',prompt:'Tap the table rapidly to get the waiter\'s attention!',emoji:'✋',targetClicks:8,timeLimit:4,
+feedbackOk:"Pragmatic Success! In HK cha chaan tengs, assertive table-tapping + a sharp '唔該!' is the pragmatically appropriate way to summon service. Polite hand-raising signals tourist.",
+feedbackFail:"Too slow! The waiter zoomed past. In HK efficiency culture, hesitation means missing your turn entirely.",xp:20}},
+
+{id:'h4',label:'Act 4/'+T,
+dialogue:[{speaker:'Waiter',text:"飲咩？ (What drink?)"},{speaker:'Goro (inner voice)',text:"Two words. No greeting, no 'please.' In HK, this IS polite — maximum efficiency, zero fluff."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'How to order an Iced Lemon Tea?',cards:[
+{icon:'📖',label:'Formal English',sub:'"Could I please have an Iced Lemon Tea with less sugar?"',correct:false,feedback:"Pragmatic Failure! The waiter walked away before you finished. In HK cha chaan tengs, long sentences violate the Maxim of Quantity — say only what's needed.",xp:0},
+{icon:'⚡',label:'Local Code-Mix!',sub:'"凍檸茶，少甜！(Dong lemon cha, siu teem!)"',correct:true,feedback:"Pragmatic Success! Code-mixing Cantonese + English in a compressed format is the pragmatic norm. The sentence-final particle '啦' signals casual in-group membership.",xp:25}
+]}},
+
+{id:'h5',label:'Act 5/'+T,
+dialogue:[{speaker:'Waiter',text:"食咩？快啲！(What food? Hurry!)"},{speaker:'Goro (inner voice)',text:"He said 'hurry' — that's not rude here, it's just... efficient. I need to match his tempo."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Order a Set Meal B with scrambled eggs on instant noodles.',cards:[
+{icon:'📜',label:'Describe in Detail',sub:'"I would like Set Meal B, with the scrambled eggs on top of the instant noodles, please."',correct:false,feedback:"Pragmatic Failure! Over-description violates the HK Maxim of Manner: be brief. '餐B，炒蛋公仔麵' is all you need — 6 syllables, not 20 words.",xp:0},
+{icon:'🔥',label:'Compressed Order',sub:'"B餐，炒蛋公仔麵！"',correct:true,feedback:"Pragmatic Success! Compressed ordering matches HK's efficiency pragmatics. Every unnecessary word wastes everyone's time — brevity IS the politeness strategy here.",xp:25}
+]}},
+
+{id:'h6',label:'Act 6/'+T,
+dialogue:[{speaker:'Narrator',text:"The food arrives but it's the wrong dish — pork chop rice instead of scrambled eggs."},{speaker:'Goro (inner voice)',text:"Complaining HK-style: be direct but not hostile. State the fact, don't add emotion."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Wrong dish arrived. How to handle it?',cards:[
+{icon:'😤',label:'Emotional Complaint',sub:'"Excuse me, this is completely wrong! I specifically said..."',correct:false,feedback:"Pragmatic Failure! Emotional elaboration is pragmatically inappropriate in HK service culture. Direct = efficient. Emotional = drama (搞事).",xp:0},
+{icon:'✋',label:'Matter-of-Fact',sub:'"唔啱喎，我叫炒蛋公仔麵。(Wrong la, I ordered scrambled egg noodles.)"',correct:true,feedback:"Pragmatic Success! Direct but emotionless correction with the sentence-final particle 喎 (wo — indicating notification) is the HK way. No drama, just facts. The waiter swaps it instantly.",xp:25}
+]}},
+
+{id:'h7',label:'Act 7/'+T,
+dialogue:[{speaker:'Table Neighbor',text:"(Glancing at Goro's food) 幾好食㗎？ (Any good ah?)"},{speaker:'Goro (inner voice)',text:"A stranger asking about my food? In HK, this is perfectly normal minimal-effort socializing."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'A stranger asks if your food is good. How to respond?',cards:[
+{icon:'📝',label:'Detailed Review',sub:'"The eggs are fluffy, the noodles have good texture..."',correct:false,feedback:"Pragmatic Failure! Over-sharing violates HK's Maxim of Quantity. The neighbor wants a one-word assessment, not a food blog review.",xp:0},
+{icon:'👍',label:'Brief & Direct',sub:'"OK啦，唔差。(OK la, not bad.)"',correct:true,feedback:"Pragmatic Success! 'OK la, not bad' is the HK equivalent of high praise. The sentence-final particle 啦 (la) signals casual solidarity. Understatement IS the compliment.",xp:25}
+]}},
+
+{id:'h8',label:'Act 8/'+T,
+dialogue:[{speaker:'Narrator',text:"Goro wants more chili oil. There's a communal bottle on the table."},{speaker:'Goro (inner voice)',text:"In HK, condiments are shared. Just grab it — no need to ask permission."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'slider',prompt:'How much chili oil? Find the Perfect local amount.',
+zones:[{min:0,max:20,label:'Too Little — Timid',color:'rgba(52,152,219,.3)'},{min:20,max:65,label:'Perfect! Confident Amount',color:'rgba(46,204,113,.3)'},{min:65,max:100,label:'Too Much — Wasteful',color:'rgba(231,76,60,.3)'}],
+feedbackOk:"Pragmatic Success! Confidently adding a moderate amount shows you're comfortable with shared-table culture. No asking, no hesitation — that's HK self-service pragmatics.",
+feedbackFail:"Pragmatic Failure! Your chili oil amount sent the wrong signal — either too timid (outsider) or too much (wasteful/inconsiderate of shared resources).",xp:20}},
+
+{id:'h9',label:'Act 9/'+T,
+dialogue:[{speaker:'Narrator',text:"Tea refill time. In HK dim sum culture, there's a secret lid signal."},{speaker:'Goro (inner voice)',text:"Tilt the teapot lid open — that's the nonverbal speech act for 'please refill.'"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'drag',prompt:'How to signal for a tea refill?',
+targets:[{id:'call',icon:'🗣️',label:'Call the Waiter',sub:'"Excuse me, more tea please!"'},{id:'lid',icon:'🫖',label:'Tilt the Lid',sub:'Leave teapot lid slightly open.'}],
+correct:'lid',
+feedbackOk:"Pragmatic Success! Tilting the lid is a Conventional Indirect Speech Act — it nonverbally communicates 'refill please' without interrupting the waiter. This centuries-old signal is pure pragmatic efficiency.",
+feedbackFail:"Pragmatic Failure! Calling out for a refill wastes everyone's time. The lid-tilting signal is an ultra-efficient Indirect Speech Act that all HK servers recognize instantly.",xp:20}},
+
+{id:'h10',label:'Act 10/'+T,
+dialogue:[{speaker:'Narrator',text:"Time to pay and thank the waiter."},{speaker:'Goro (inner voice)',text:"'唔該' (m-goi) for service, '多謝' (doh-je) for gifts. Which one here?"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'How to thank the waiter?',cards:[
+{icon:'🎁',label:'"多謝！" (Doh-je)',sub:'Thanks used for gifts and favors.',correct:false,feedback:"Pragmatic Failure! 多謝 is for gifts/favors, not transactional service. Using it here is a Sociopragmatic error — wrong thanks for wrong context.",xp:0},
+{icon:'🫖',label:'Tap Table + "唔該!"',sub:'Finger tap + M-goi for service.',correct:true,feedback:"Pragmatic Success! 唔該 (m-goi) for service/transactions, 多謝 (doh-je) for gifts. This distinction is a core Cantonese pragmatic competence. You earned the 20-year Aged Tangerine Peel!",xp:25}
+]}}
+];
+
+/* =========================================================
+   CHAPTER 4 — BANGKOK 🇹🇭  (10 Acts)
+   Concepts: Kreng Jai, Jai Yen Yen, Wai, Social Hierarchy,
+   Indirect Refusal, Harmony Maintenance, Face-Saving
+   ========================================================= */
+case 4:return[
+{id:'b1',label:'Act 1/'+T,
+dialogue:[{speaker:'Narrator',text:"Mae Khrua stands at her night market stall. The Wai greeting requires precise hand positioning."},{speaker:'Goro (inner voice)',text:"For an elder: hands between chest and chin with a slight bow. Height encodes respect."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'slider',prompt:'Adjust the Wai height. Find the Perfect zone for greeting an elder.',
+zones:[{min:0,max:30,label:'Too Low — Disrespectful',color:'rgba(231,76,60,.3)'},{min:30,max:70,label:'Chest to Chin — Perfect!',color:'rgba(46,204,113,.3)'},{min:70,max:100,label:'Forehead — For monks only!',color:'rgba(231,76,60,.3)'}],
+feedbackOk:"Pragmatic Success! The Wai is Social Deixis embodied — hand height precisely encodes your relationship to the recipient. Chest-to-chin = respect for elders. Forehead = reserved for monks and royalty only.",
+feedbackFail:"Pragmatic Failure! Wrong Wai height. Thai Social Deixis through the Wai is non-negotiable — incorrect height signals either disrespect or inappropriate reverence.",xp:25}},
+
+{id:'b2',label:'Act 2/'+T,
+dialogue:[{speaker:'Narrator',text:"Mae Khrua's stall is near a small shrine. There are shoes scattered at the edge of the cooking area."},{speaker:'Goro (inner voice)',text:"Any area near a shrine requires shoe removal. Shoes = impurity in Thai culture."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'You notice shoes lined up at the edge. What should Goro do?',cards:[
+{icon:'👟',label:'Keep Shoes On',sub:'"It\'s just a food stall, no need to remove shoes."',correct:false,feedback:"Pragmatic Failure! Near a shrine, keeping shoes on is a severe face-threatening act. Shoes represent impurity (ไม่สะอาด) in Thai Buddhist culture. This presupposition is deeply embedded.",xp:0},
+{icon:'🩴',label:'Remove Shoes Neatly',sub:'Slip off shoes, place them neatly facing outward.',correct:true,feedback:"Pragmatic Success! Shoe removal near sacred spaces is a Cultural Presupposition in Thailand — it presupposes the sanctity of the ground. Neat placement shows awareness of Thai orderliness.",xp:25}
+]}},
+
+{id:'b3',label:'Act 3/'+T,
+dialogue:[{speaker:'Mae Khrua',text:"Sorry ka, no shrimp today. Squid OK na ka?"},{speaker:'Goro (inner voice)',text:"Thai culture values avoiding conflict. Questioning her would cause loss of face. Jai Yen (cool heart)..."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'No shrimp available. How to respond?',cards:[
+{icon:'😤',label:'Question It',sub:'"But your menu says shrimp pad thai..."',correct:false,feedback:"Pragmatic Failure! Direct questioning is a Face-Threatening Act in Thai culture. It disrupts สมานฉันท์ (harmony) and forces Mae Khrua to 'lose face' publicly. Thai indirect refusal means 'this is final.'",xp:0},
+{icon:'😊',label:'Mai Pen Rai!',sub:'"Mai pen rai khrap! Squid sounds great!"',correct:true,feedback:"Pragmatic Success! 'Mai pen rai' (never mind / it's OK) is Thailand's core pragmatic principle — maintaining harmony above personal desire. Mae Khrua secretly adds extra scallops as thanks!",xp:25}
+]}},
+
+{id:'b4',label:'Act 4/'+T,
+dialogue:[{speaker:'Mae Khrua',text:"How spicy ka? Thai spicy or... farang spicy? (She smiles knowingly)"},{speaker:'Goro (inner voice)',text:"'Farang spicy' = mild by Thai standards. Her smile is an Indirect Speech Act — she's gently suggesting I can't handle real Thai heat."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'slider',prompt:'Choose your spice level. Too high = pain. Too low = insult to Thai cooking.',
+zones:[{min:0,max:25,label:'Farang Level — She\'ll be disappointed',color:'rgba(52,152,219,.3)'},{min:25,max:70,label:'Perfect! Medium Thai',color:'rgba(46,204,113,.3)'},{min:70,max:100,label:'Thai Hot — Dangerous!',color:'rgba(231,76,60,.3)'}],
+feedbackOk:"Pragmatic Success! Choosing 'medium Thai' shows cultural respect without overestimating your tolerance. Mae Khrua nods approvingly — you avoided the face-losing extremes of too mild or too ambitious.",
+feedbackFail:"Pragmatic Failure! Your spice level choice was pragmatically inappropriate — either insulting Thai cuisine or inviting painful regret.",xp:20}},
+
+{id:'b5',label:'Act 5/'+T,
+dialogue:[{speaker:'Narrator',text:"Fork and spoon on the table. In Thailand, the fork NEVER goes in your mouth."},{speaker:'Goro (inner voice)',text:"Fork pushes food onto spoon. Spoon goes to mouth. Never fork-to-mouth!"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'sequence',prompt:'Use utensils correctly! Click in order.',
+items:[{id:'fork',icon:'🍴',label:'Fork Push',order:1},{id:'spoon',icon:'🥄',label:'Spoon Scoop',order:2},{id:'mouth',icon:'😋',label:'Spoon to Mouth',order:3}],
+feedbackOk:"Pragmatic Success! Fork-to-mouth is considered unrefined (ไม่สุภาพ) in Thai culture. The fork is a tool to push food onto the spoon — the spoon is the only utensil that touches your lips.",
+feedbackFail:"Wrong order! In Thai pragmatics, eating with the fork directly signals a lack of refinement.",xp:20}},
+
+{id:'b6',label:'Act 6/'+T,
+dialogue:[{speaker:'Narrator',text:"A Buddhist monk walks past the stall. Mae Khrua immediately lowers her eyes."},{speaker:'Goro (inner voice)',text:"Monks are at the TOP of Thai social hierarchy. As a layperson, I must show extreme deference. And women must never touch a monk."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'A monk passes by. What should Goro do?',cards:[
+{icon:'👋',label:'Greet Casually',sub:'"Hello! Nice evening, isn\'t it?"',correct:false,feedback:"Pragmatic Failure! Casual greeting to a monk violates Thai Social Deixis. Monks occupy the highest social tier — casual speech is a severe face-threatening act to the entire religious institution.",xp:0},
+{icon:'🙏',label:'High Wai + Step Aside',sub:'Perform the highest Wai (forehead level) and step aside.',correct:true,feedback:"Pragmatic Success! The forehead-level Wai for monks is mandatory Social Deixis. Stepping aside shows you understand the spatial hierarchy — monks always have right of way.",xp:25}
+]}},
+
+{id:'b7',label:'Act 7/'+T,
+dialogue:[{speaker:'Narrator',text:"Goro wants to compliment Mae Khrua's cooking."},{speaker:'Goro (inner voice)',text:"Excessive praise can embarrass in Thai culture. Moderate, warm, genuine — that's the register."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'How to compliment the chef?',cards:[
+{icon:'🌟',label:'Extreme Praise',sub:'"THIS IS THE BEST FOOD IN ALL OF ASIA!"',correct:false,feedback:"Pragmatic Failure! Excessive praise violates Thai modesty norms. It creates social pressure and embarrassment (อาย). Thai Positive Politeness requires warmth without hyperbole.",xp:0},
+{icon:'😊',label:'Warm & Moderate',sub:'"Aroy mak ka! (Very delicious!) Your family recipe?"',correct:true,feedback:"Pragmatic Success! 'Aroy mak' + a personal question shows genuine interest without overwhelming praise. This warmth-without-extremism IS Thai positive politeness.",xp:25}
+]}},
+
+{id:'b8',label:'Act 8/'+T,
+dialogue:[{speaker:'Narrator',text:"Goro accidentally spills soup on the tablecloth. Mae Khrua approaches..."},{speaker:'Goro (inner voice)',text:"Over-reacting creates drama that disrupts the peaceful atmosphere. Jai Yen Yen (cool heart)..."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Spilled soup! How to react?',cards:[
+{icon:'😱',label:'Panic & Over-Apologize',sub:'"I am SO SORRY! Let me clean everything! I\'ll pay for the tablecloth!"',correct:false,feedback:"Pragmatic Failure! Over-reacting creates อาย (embarrassment) for everyone and disrupts สมานฉันท์ (harmony). Thai pragmatics prioritize keeping the atmosphere calm over addressing the 'problem.'",xp:0},
+{icon:'🙏',label:'Gentle Smile + Wai',sub:'Apologetic smile, gentle "Kho thot khrap." Offer to help calmly.',correct:true,feedback:"Pragmatic Success! Gentle acknowledgment + smile maintains Jai Yen Yen. Mae Khrua says 'Mai pen rai ka!' and gifts you the Royal Premium Fish Sauce!",xp:25}
+]}},
+
+{id:'b9',label:'Act 9/'+T,
+dialogue:[{speaker:'Narrator',text:"A cute child at the next stall runs over. Goro instinctively reaches to pat the child's head."},{speaker:'Goro (inner voice)',text:"WAIT — the head is the most sacred part of the body in Thai Buddhism. Touching it is a severe taboo!"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'A child runs over. Can you pat their head?',cards:[
+{icon:'✋',label:'Pat the Head',sub:'"Hey little one!" (Reaches for head)',correct:false,feedback:"Pragmatic Failure! The head (ศีรษะ) is the most sacred body part in Thai Buddhism — touching it, especially a child's, is a profound cultural violation. This Presupposition of body-part hierarchy is absolute.",xp:0},
+{icon:'😊',label:'Wave & Smile',sub:'Wave and give a warm smile instead.',correct:true,feedback:"Pragmatic Success! You avoided a catastrophic cross-cultural pragmatic failure. In Thai culture, the head is sacred (highest body part) and feet are profane (lowest). Physical affection is shown through smiles, not touch.",xp:25}
+]}},
+
+{id:'b10',label:'Act 10/'+T,
+dialogue:[{speaker:'Mae Khrua',text:"You come back any time na ka! Next time I make special dish just for you!"},{speaker:'Goro (inner voice)',text:"Time to say farewell. The reciprocal Wai and a gentle 'khob khun khrap' will seal this friendship."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'qte_hold',title:'FAREWELL WAI!',emoji:'🙏',prompt:'Hold for the farewell Wai — release in the green zone!',
+feedbackOk:"Pragmatic Success! A perfectly-timed farewell Wai + warm 'Khob khun khrap' honors Mae Khrua's hospitality. She beams and presses the Royal Premium Fish Sauce into your hands!",
+feedbackFail:"Pragmatic Failure! Your Wai timing was off — too brief signals insincerity, too long signals excessive formality that creates distance.",xp:25}}
+];
+
+/* =========================================================
+   CHAPTER 5 — DUBAI 🇦🇪  (10 Acts)
+   Concepts: Hospitality Obligation, Praise/Evil Eye, Gender Pragmatics,
+   Religious Performatives, Honor, Right/Left Hand Taboo
+   ========================================================= */
+case 5:return[
+{id:'d1',label:'Act 1/'+T,
+dialogue:[{speaker:'Hassan',text:"Welcome, my friend! Please — our finest Gahwa and dates for you."},{speaker:'Goro (inner voice)',text:"Which hand I use to receive is critical. The left hand is considered unclean in Arab culture."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Which hand to receive the coffee?',cards:[
+{icon:'🤚',label:'Left Hand',sub:'Reach naturally with the closer hand.',correct:false,feedback:"Pragmatic Failure! The left hand is associated with impurity in Arab culture. Using it to receive food/drink is a severe Face-Threatening Act that signals disrespect to the host.",xp:0},
+{icon:'✋',label:'Right Hand',sub:'Extend right hand with a slight bow.',correct:true,feedback:"Pragmatic Success! The right hand is the 'clean' hand in Arabic cultural Presupposition. Receiving with it shows you understand the body-symbolism system.",xp:25}
+]}},
+
+{id:'d2',label:'Act 2/'+T,
+dialogue:[{speaker:'Narrator',text:"Hassan leads Goro to the Majlis (sitting room). There's a protocol for entering."},{speaker:'Goro (inner voice)',text:"Remove shoes, step in with right foot first, greet everyone individually..."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'sequence',prompt:'Enter the Majlis correctly!',
+items:[{id:'shoes',icon:'👞',label:'Remove Shoes',order:1},{id:'right',icon:'🦶',label:'Right Foot First',order:2},{id:'greet',icon:'🤝',label:'Greet Each Person',order:3},{id:'sit',icon:'🪑',label:'Sit Where Directed',order:4}],
+feedbackOk:"Pragmatic Success! Entering right-foot-first is a religious Performative (Sunnah tradition). Greeting each person individually honors their presence. Sitting where directed respects the host's spatial hierarchy.",
+feedbackFail:"Wrong order! Majlis entry protocol is a sequence of religious Performatives and social Deixis — each step encodes respect.",xp:20}},
+
+{id:'d3',label:'Act 3/'+T,
+dialogue:[{speaker:'Hassan',text:"Please, sit here. (He gestures to the seat farthest from the door.)"},{speaker:'Goro (inner voice)',text:"The seat farthest from the door is the honor position in a Majlis. He's giving me the best seat."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Hassan points to the far seat. What does Goro do?',cards:[
+{icon:'🚪',label:'Sit Near Door',sub:'"I\'ll sit here by the door — more convenient."',correct:false,feedback:"Pragmatic Failure! Rejecting the honor seat is a Face-Threatening Act to the host. In Arabic Spatial Deixis, the far seat = highest honor. Refusing it rejects his hospitality.",xp:0},
+{icon:'🌟',label:'Accept with Gratitude',sub:'"Shukran! You honor me." (Takes the offered seat)',correct:true,feedback:"Pragmatic Success! Accepting the honor seat gracefully validates the host's generosity. Arabic hospitality is performative — accepting IS participating in the honor ritual.",xp:25}
+]}},
+
+{id:'d4',label:'Act 4/'+T,
+dialogue:[{speaker:'Hassan',text:"More coffee? (Already reaching for the pot)"},{speaker:'Goro (inner voice)',text:"I've had three cups. Saying 'no' directly won't work — I need the right body signal."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'rapid',prompt:'Shake the cup side to side! Tap rapidly!',emoji:'☕',targetClicks:8,timeLimit:4,
+feedbackOk:"Pragmatic Success! The cup-shake is a Conventional Indirect Speech Act — the universal Gulf signal for 'I've had enough.' Verbal refusal would be a Face-Threatening Act to the host.",
+feedbackFail:"Too slow! Hassan already poured another cup. The cup-shake must be swift and decisive to function as a refusal signal.",xp:25}},
+
+{id:'d5',label:'Act 5/'+T,
+dialogue:[{speaker:'Narrator',text:"Lamb Mandi arrives. Hassan looks at Goro expectantly before eating."},{speaker:'Goro (inner voice)',text:"Before eating in Islamic culture, you say 'Bismillah' (In the name of God). It's a mandatory Performative."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Food arrives. What should you say before eating?',cards:[
+{icon:'🍽️',label:'Start Eating',sub:'Pick up food immediately — you\'re hungry!',correct:false,feedback:"Pragmatic Failure! Eating without 'Bismillah' is a significant cultural oversight. This Performative utterance sanctifies the meal — skipping it shows disregard for Islamic values.",xp:0},
+{icon:'🤲',label:'Say "Bismillah"',sub:'"Bismillah" then eat with right hand.',correct:true,feedback:"Pragmatic Success! 'Bismillah' is a Performative Speech Act (Austin's theory) — saying it DOES something: it sanctifies the food. Hassan nods warmly at your cultural awareness.",xp:25}
+]}},
+
+{id:'d6',label:'Act 6/'+T,
+dialogue:[{speaker:'Narrator',text:"Goro eats alongside Hassan. The pace of eating carries pragmatic meaning."},{speaker:'Goro (inner voice)',text:"Too fast = greedy. Too slow = food is bad. Match Hassan's pace..."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'slider',prompt:'Match your eating pace to the host. Find the Perfect zone.',
+zones:[{min:0,max:25,label:'Too Slow — Insulting',color:'rgba(231,76,60,.3)'},{min:25,max:70,label:'Perfect! Matching Host',color:'rgba(46,204,113,.3)'},{min:70,max:100,label:'Too Fast — Greedy',color:'rgba(231,76,60,.3)'}],
+feedbackOk:"Pragmatic Success! Matching your host's eating pace is a Mirroring strategy in Arabic pragmatics — it signals harmony, respect, and contentment with the meal.",
+feedbackFail:"Pragmatic Failure! Your eating pace sent the wrong signal. In Arab hospitality, pace is communicative — it tells the host how you feel about the food.",xp:20}},
+
+{id:'d7',label:'Act 7/'+T,
+dialogue:[{speaker:'Narrator',text:"Goro spots a magnificent golden falcon on a perch and exclaims: 'This is the most BEAUTIFUL falcon I've ever seen!'"},{speaker:'Goro (inner voice)',text:"Oh no — excessive praise can trigger the obligation to GIVE it. The Evil Eye (العين) concept..."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'You over-praised the falcon. How to recover?',cards:[
+{icon:'📸',label:'Keep Praising',sub:'"Can I take a photo? It must be priceless!"',correct:false,feedback:"Pragmatic Failure! Continued praise intensifies the Evil Eye danger. Hassan may feel obligated to gift the falcon. In Arab Presupposition, excessive praise = coveting = harmful intent.",xp:0},
+{icon:'🍖',label:'Redirect to Food',sub:'"Mashallah — such artistry everywhere! Just like this incredible Lamb Mandi."',correct:true,feedback:"Pragmatic Success! 'Mashallah' deflects the Evil Eye (العين), and redirecting praise to the food diffuses the obligation. Brilliant pragmatic recovery!",xp:25}
+]}},
+
+{id:'d8',label:'Act 8/'+T,
+dialogue:[{speaker:'Narrator',text:"Hassan offers his business card. How Goro receives it matters."},{speaker:'Goro (inner voice)',text:"Right hand to receive. Touch chest with right hand after — that means 'I hold this close to my heart.'"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'drag',prompt:'How to receive Hassan\'s business card?',
+targets:[{id:'left',icon:'🤚',label:'Left Hand',sub:'Take casually with whichever hand.'},{id:'right',icon:'✋',label:'Right Hand + Heart',sub:'Right hand, then touch chest.'}],
+correct:'right',
+feedbackOk:"Pragmatic Success! Right hand + chest touch is a Conventional Gesture that means 'I receive this with sincerity.' Left hand is taboo for receiving in Arab culture.",
+feedbackFail:"Pragmatic Failure! Left-hand reception is considered disrespectful. The right-hand-to-chest gesture is a powerful nonverbal speech act of sincerity.",xp:20}},
+
+{id:'d9',label:'Act 9/'+T,
+dialogue:[{speaker:'Hassan',text:"My friend, if God wills it, we shall meet again. Inshallah."},{speaker:'Goro (inner voice)',text:"When plans are discussed, 'Inshallah' (God willing) must be included. It's not optional — it's a Cultural Performative."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Hassan says "Inshallah." How to respond?',cards:[
+{icon:'📅',label:'Pin Down a Date',sub:'"Definitely! How about next month, the 15th?"',correct:false,feedback:"Pragmatic Failure! Pinning down specifics without 'Inshallah' implies you control the future — which violates the Islamic Presupposition that only God controls outcomes. Always include 'Inshallah.'",xp:0},
+{icon:'🤲',label:'Mirror with Inshallah',sub:'"Inshallah, I would be honored, my friend."',correct:true,feedback:"Pragmatic Success! Mirroring 'Inshallah' is a mandatory Cultural Performative. It acknowledges divine will and demonstrates respect for Islamic values. Hassan beams.",xp:25}
+]}},
+
+{id:'d10',label:'Act 10/'+T,
+dialogue:[{speaker:'Narrator',text:"Hassan opens his arms for the traditional embrace farewell."},{speaker:'Goro (inner voice)',text:"Flinching would reject his friendship. Lean in with warmth..."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'qte_hold',title:'EMBRACE!',emoji:'🤗',prompt:'Hold for the embrace — release in the green zone!',
+feedbackOk:"Pragmatic Success! The Arabic embrace is a Performative act of brotherhood. Your warmth seals the friendship. Hassan gifts you the World's Finest Saffron — 'For your masterpiece, brother.'",
+feedbackFail:"Pragmatic Failure! Your embrace was wrong — too brief signals reluctance, too long creates awkwardness. The embrace must feel natural and warm.",xp:25}}
+];
+
+/* =========================================================
+   CHAPTER 6 — PARIS 🇫🇷  (10 Acts)
+   Concepts: Bonjour Ritual, Debate Culture, Register, Tu/Vous,
+   Negative Politeness, Food as Art, Intellectual Face
+   ========================================================= */
+case 6:return[
+{id:'p1',label:'Act 1/'+T,
+dialogue:[{speaker:'Narrator',text:"Under the Eiffel Tower at dusk, Goro smells Laurent's truffle cheese stand."},{speaker:'Goro (inner voice)',text:"In France, there's a critical first word — a 'social passport' required before ANY interaction."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'How to approach Laurent?',cards:[
+{icon:'👋',label:'Direct Approach',sub:'"Hey! That smells amazing! What is it?"',correct:false,feedback:"Pragmatic Failure! Skipping 'Bonjour' is a severe Face-Threatening Act in France. It's not just a greeting — it's a Performative that establishes social recognition. Without it, you're treating Laurent as a non-person.",xp:0},
+{icon:'🎩',label:'Say Bonjour First',sub:'"Bonjour, Monsieur." (Wait for his reply)',correct:true,feedback:"Pragmatic Success! 'Bonjour' is a pragmatic passport — a Performative Speech Act that grants you social existence. Laurent responds warmly: 'Bonjour, Monsieur. Welcome.'",xp:25}
+]}},
+
+{id:'p2',label:'Act 2/'+T,
+dialogue:[{speaker:'Laurent',text:"(Eyes narrow as Goro reaches toward the cheese display)"},{speaker:'Goro (inner voice)',text:"In France, touching products without permission is a violation of the artisan's domain. Ask first!"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'You instinctively reach for the cheese. What should you do?',cards:[
+{icon:'✋',label:'Touch & Inspect',sub:'Pick up the cheese to examine it closely.',correct:false,feedback:"Pragmatic Failure! Touching without permission violates French Negative Politeness — it imposes on Laurent's professional territory. His cheese is art, not supermarket produce.",xp:0},
+{icon:'👀',label:'Ask Permission',sub:'"Puis-je regarder de plus près, Monsieur?"',correct:true,feedback:"Pragmatic Success! Asking permission respects Laurent's Negative Face (his territory and autonomy). Using formal register signals you understand French artisan culture.",xp:25}
+]}},
+
+{id:'p3',label:'Act 3/'+T,
+dialogue:[{speaker:'Laurent',text:"Ah, non, non, c'est impossible. This is my private reserve. Not for sale."},{speaker:'Goro (inner voice)',text:"In France, 'Non' is often a debate invitation, not a final answer. He's testing my passion!"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Laurent refuses. What does Goro do?',cards:[
+{icon:'🙇',label:'Walk Away',sub:'"I apologize for bothering you. Good evening."',correct:false,feedback:"Pragmatic Failure! Retreating shows lack of genuine passion. In French debate culture, 'Non' is a Conversational Implicature meaning 'convince me why you deserve it.' Walking away fails the test.",xp:0},
+{icon:'🔥',label:'Show Passionate Argument',sub:'"Quel dommage! I crossed the globe seeking the perfect terroir... Your cheese is the missing piece."',correct:true,feedback:"Pragmatic Success! You decoded 'Non' as a challenge, not a refusal. French Conversational Implicature: the first 'Non' means 'prove your worthiness through intelligent argument.'",xp:25}
+]}},
+
+{id:'p4',label:'Act 4/'+T,
+dialogue:[{speaker:'Laurent',text:"Hmph. You think terroir matters? Terroir is just marketing for tourists."},{speaker:'Goro (inner voice)',text:"He's provoking me to debate! In France, intellectual sparring IS the bonding ritual. I must push back with facts."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Laurent dismisses "terroir." How to respond?',cards:[
+{icon:'😊',label:'Agree to Avoid Conflict',sub:'"You\'re absolutely right, Monsieur."',correct:false,feedback:"Pragmatic Failure! Blind agreement in France signals either ignorance or insincerity. French Positive Politeness values intellectual engagement, not servile agreement.",xp:0},
+{icon:'🎭',label:'Counter-Argue with Evidence',sub:'"With respect, the limestone caves of Périgord create a microbiome that science has documented..."',correct:true,feedback:"Pragmatic Success! Informed counter-argument IS French bonding. Laurent's eyes light up: 'Enfin! Someone who understands!' You've earned his intellectual face.",xp:25}
+]}},
+
+{id:'p5',label:'Act 5/'+T,
+dialogue:[{speaker:'Laurent',text:"(Pours two glasses of wine) Tell me — what do you detect?"},{speaker:'Goro (inner voice)',text:"French wine tasting demands analytical vocabulary. 'Yummy' would be catastrophic."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'slider',prompt:'Demonstrate wine knowledge. Find the Perfect analytical level.',
+zones:[{min:0,max:30,label:'Too Simple — "It\'s nice!"',color:'rgba(231,76,60,.3)'},{min:30,max:70,label:'Perfect! Analytical & Specific',color:'rgba(46,204,113,.3)'},{min:70,max:100,label:'Pretentious — Overblown',color:'rgba(231,76,60,.3)'}],
+feedbackOk:"Pragmatic Success! 'Notes of blackcurrant with a mineral finish' — analytical but not pretentious. French Register requires precise sensory vocabulary. Laurent nods: 'Pas mal.'",
+feedbackFail:"Pragmatic Failure! Your wine commentary missed the register target. French food/wine discussion demands specific analytical vocabulary — neither too simple nor too showy.",xp:20}},
+
+{id:'p6',label:'Act 6/'+T,
+dialogue:[{speaker:'Narrator',text:"Laurent breaks off a piece of bread. In France, bread etiquette is precise."},{speaker:'Goro (inner voice)',text:"Break bread with hands — never cut it with a knife. Place it directly on the table, not on the plate."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'sequence',prompt:'Handle the bread correctly!',
+items:[{id:'break',icon:'🍞',label:'Break by Hand',order:1},{id:'table',icon:'🔲',label:'Place on Table',order:2},{id:'bite',icon:'😋',label:'Small Bites',order:3}],
+feedbackOk:"Pragmatic Success! French bread etiquette: break (never cut), place on tablecloth (never on plate), eat in small pieces. Each rule is a Cultural Presupposition of refinement.",
+feedbackFail:"Wrong order! French bread etiquette is a sequence of refinement signals. Breaking it encodes 'rustic authenticity.'",xp:20}},
+
+{id:'p7',label:'Act 7/'+T,
+dialogue:[{speaker:'Narrator',text:"Laurent watches Goro taste the cheese."},{speaker:'Goro (inner voice)',text:"HOW I describe it matters immensely. Food in France is serious art — the register must match."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'How to describe the cheese?',cards:[
+{icon:'👍',label:'Casual Praise',sub:'"Wow! Yummy! Super good!"',correct:false,feedback:"Pragmatic Failure! 'Yummy' is infantile in French culinary Register. It signals zero sophistication. French gastronomy demands analytical, sensory-specific vocabulary.",xp:0},
+{icon:'🎭',label:'Analytical Register',sub:'"The creamy finish perfectly balances the earthy truffle notes. Remarkable depth."',correct:true,feedback:"Pragmatic Success! Analytical register signals connoisseur status. Laurent's stern face cracks into a rare smile: 'Vous comprenez le fromage.'",xp:25}
+]}},
+
+{id:'p8',label:'Act 8/'+T,
+dialogue:[{speaker:'Laurent',text:"(Switches to less formal tone) So... tu voyages souvent?"},{speaker:'Goro (inner voice)',text:"He switched from 'vous' to 'tu'! That's a massive pragmatic shift — he's signaling we've moved from formal acquaintance to friendly rapport."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Laurent switches from "vous" to "tu." How to respond?',cards:[
+{icon:'🎩',label:'Stay with Vous',sub:'Continue using "vous" — stay formal.',correct:false,feedback:"Pragmatic Failure! Refusing to reciprocate the tu/vous shift is a rejection of his offered intimacy. In French Social Deixis, 'tu' is a gift of closeness — refusing it creates distance.",xp:0},
+{icon:'🤝',label:'Mirror with Tu',sub:'Switch to "tu" as well — accept the rapport.',correct:true,feedback:"Pragmatic Success! The tu/vous switch is French Social Deixis in action. Mirroring his 'tu' accepts the new relationship frame. You're no longer a stranger — you're an acquaintance worthy of informality.",xp:25}
+]}},
+
+{id:'p9',label:'Act 9/'+T,
+dialogue:[{speaker:'Narrator',text:"Time to settle the bill. Laurent hesitates."},{speaker:'Goro (inner voice)',text:"In France, splitting the bill is perfectly acceptable among equals. But who offers first matters."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'How to handle the bill?',cards:[
+{icon:'💰',label:'Pay for Everything',sub:'"Please, let me pay for all of it!"',correct:false,feedback:"Pragmatic Failure! Insisting on paying everything implies an unequal power dynamic. French Negative Politeness between new friends requires equal treatment — 'moitié-moitié' (half-half).",xp:0},
+{icon:'⚖️',label:'Suggest Splitting',sub:'"On partage? Moitié-moitié?"',correct:true,feedback:"Pragmatic Success! Suggesting an equal split respects French egalitarian values. It treats Laurent as an equal, not a charity case. He smiles: 'Bien sûr.'",xp:25}
+]}},
+
+{id:'p10',label:'Act 10/'+T,
+dialogue:[{speaker:'Narrator',text:"The Eiffel Tower sparkles. Time to leave."},{speaker:'Goro (inner voice)',text:"Over-thanking in France makes people uncomfortable. Cool, equal, one elegant line."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'qte_hold',title:'LA BISE!',emoji:'💋',prompt:'The farewell cheek-kiss! Hold for the right duration!',
+feedbackOk:"Pragmatic Success! Two cheek-kisses (la bise), perfectly timed. Laurent tosses you a Périgord Black Truffle: 'Pour ton voyage, mon ami.'",
+feedbackFail:"Pragmatic Failure! Your la bise timing was off — too quick = cold, too long = awkward. The French farewell ritual requires confident, natural rhythm.",xp:25}}
+];
+
+/* =========================================================
+   CHAPTER 7 — LONDON 🇬🇧  (10 Acts)
+   Concepts: Hedging, Indirectness, Understatement, Irony,
+   "Sorry" as Lubricant, Queue Culture, Weather as Phatic
+   ========================================================= */
+case 7:return[
+{id:'l1',label:'Act 1/'+T,
+dialogue:[{speaker:'Narrator',text:"Goro approaches a pub with a queue outside. The queue is sacred in Britain."},{speaker:'Goro (inner voice)',text:"Cutting a queue in Britain is worse than a crime. Find the end, stand patiently."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'There\'s a queue. What does Goro do?',cards:[
+{icon:'🏃',label:'Walk to the Front',sub:'Confidently walk toward the entrance.',correct:false,feedback:"Pragmatic Failure! Queue-jumping is the ULTIMATE Face-Threatening Act in British culture. It violates the core social contract. You'd receive the dreaded 'tut' and death stares.",xp:0},
+{icon:'🧍',label:'Join the Back',sub:'Find the end, stand patiently with appropriate spacing.',correct:true,feedback:"Pragmatic Success! The British queue is a sacred social institution. Joining the back signals civilized behavior. The person ahead gives you a tiny, approving nod.",xp:25}
+]}},
+
+{id:'l2',label:'Act 2/'+T,
+dialogue:[{speaker:'Narrator',text:"Inside, a patron bumps into Goro, spilling beer on his jacket."},{speaker:'Goro (inner voice)',text:"Not my fault... but in Britain, 'Sorry' is social lubricant, not an admission of guilt."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Someone bumps into YOU and spills beer. What do you say?',cards:[
+{icon:'😶',label:'Stay Silent',sub:'Not your fault — say nothing.',correct:false,feedback:"Pragmatic Failure! Silence implies hostility in Britain. The Reflexive Apology ('Sorry!') is a Phatic token — it means 'I acknowledge your existence and wish no conflict,' NOT 'I was wrong.'",xp:0},
+{icon:'🇬🇧',label:'"Oh, sorry!"',sub:'Apologize and step aside with a half-smile.',correct:true,feedback:"Pragmatic Success! The British 'Sorry' is a Phatic Communication token — it maintains social harmony, not assign blame. Arthur the bartender nods approvingly at your cultural fluency.",xp:25}
+]}},
+
+{id:'l3',label:'Act 3/'+T,
+dialogue:[{speaker:'Arthur',text:"(Behind the bar, polishing a glass) Evening."},{speaker:'Goro (inner voice)',text:"One word: 'Evening.' British greetings are minimal. I should match the register — don't over-greet."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Arthur says "Evening." How to reply?',cards:[
+{icon:'🤗',label:'Enthusiastic Greeting',sub:'"Hi there!! Great to meet you! What a lovely pub!"',correct:false,feedback:"Pragmatic Failure! Excessive enthusiasm violates British Negative Politeness. Over-greeting is 'too American' — it imposes unwanted social energy. Match the register.",xp:0},
+{icon:'👋',label:'Mirror the Register',sub:'"Evening." (Brief nod)',correct:true,feedback:"Pragmatic Success! Mirroring the minimal greeting shows pragmatic competence. In British pub culture, Register Matching = respect. Arthur pours you a half-pint to start.",xp:25}
+]}},
+
+{id:'l4',label:'Act 4/'+T,
+dialogue:[{speaker:'Narrator',text:"Goro needs to order food and drink at the bar."},{speaker:'Goro (inner voice)',text:"A direct order sounds like bossing a servant. British English demands hedging and mitigation."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'How to order at the bar?',cards:[
+{icon:'📋',label:'Direct Order',sub:'"I\'ll have a pint and the cheddar plate."',correct:false,feedback:"Pragmatic Failure! Too direct. British Negative Politeness requires hedging to minimize the Face-Threatening Act of making a request. 'I'll have' sounds like a command.",xp:0},
+{icon:'💂',label:'Hedged & Mitigated',sub:'"Sorry, could I possibly get a pint and perhaps a bit of cheddar?"',correct:true,feedback:"Pragmatic Success! 'Sorry' (preface) + 'could I possibly' (modal hedge) + 'a bit of' (minimizer) + 'perhaps' (downtoner) = perfect British Negative Politeness. Four hedging devices in one sentence!",xp:25}
+]}},
+
+{id:'l5',label:'Act 5/'+T,
+dialogue:[{speaker:'Narrator',text:"Arthur finishes his pint. He's been buying rounds for regulars."},{speaker:'Goro (inner voice)',text:"The pub round system: if someone buys you a drink, you MUST buy the next round. Not doing so is the ultimate social crime."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Arthur bought you a drink. What must you do?',cards:[
+{icon:'🙏',label:'Just Say Thanks',sub:'"Thank you so much, Arthur. Cheers!"',correct:false,feedback:"Pragmatic Failure! Thanks alone isn't enough. The British round system is a Reciprocity Obligation — if someone buys you a drink, you MUST offer to buy the next round. Not offering = social death.",xp:0},
+{icon:'🍺',label:'Offer the Next Round',sub:'"Cheers! Right, the next one\'s on me."',correct:true,feedback:"Pragmatic Success! The pub round system is a Conventional Social Contract. Your immediate reciprocity offer signals you understand the unwritten rules. Arthur grins: 'Good man.'",xp:25}
+]}},
+
+{id:'l6',label:'Act 6/'+T,
+dialogue:[{speaker:'Arthur',text:"(Slides cheddar plate over) Not the worst cheese you've had, I suppose?"},{speaker:'Goro (inner voice)',text:"British understatement. 'Not the worst' = 'actually quite magnificent.' I must mirror the register."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Arthur asks if the cheese is "not the worst." How to respond?',cards:[
+{icon:'🤩',label:'Enthusiastic',sub:'"The BEST cheese in the entire WORLD!"',correct:false,feedback:"Pragmatic Failure! Excessive enthusiasm is 'too American' in British pragmatics. It violates the Understatement Maxim — where great things are described as merely 'decent' or 'not bad.'",xp:0},
+{icon:'🫖',label:'Ironic Understatement',sub:'"Not bad at all. Quite decent, actually."',correct:true,feedback:"Pragmatic Success! Litotes (understatement through negation) — calling a masterpiece 'quite decent' IS the highest British praise. Arthur chuckles knowingly: 'High praise indeed.'",xp:25}
+]}},
+
+{id:'l7',label:'Act 7/'+T,
+dialogue:[{speaker:'Arthur',text:"Catch the match yesterday? Tottenham were... well..."},{speaker:'Goro (inner voice)',text:"He trails off — that's a British Indirect Speech Act. I should show measured interest, not wild enthusiasm."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'slider',prompt:'Show football enthusiasm. Find the Perfect British level.',
+zones:[{min:0,max:25,label:'Too Cold — Disinterested',color:'rgba(52,152,219,.3)'},{min:25,max:65,label:'Perfect! Measured Interest',color:'rgba(46,204,113,.3)'},{min:65,max:100,label:'Too Wild — Embarrassing',color:'rgba(231,76,60,.3)'}],
+feedbackOk:"Pragmatic Success! Measured interest + a dry comment like 'Bit of a mixed bag, wasn't it?' matches British emotional Register perfectly. Wild cheering would clear the pub.",
+feedbackFail:"Pragmatic Failure! Your enthusiasm level missed the British register. Too cold = rude. Too wild = embarrassing. The British sweet spot is 'restrained engagement.'",xp:20}},
+
+{id:'l8',label:'Act 8/'+T,
+dialogue:[{speaker:'Arthur',text:"The weather's been quite interesting lately, hasn't it?"},{speaker:'Goro (inner voice)',text:"'Quite interesting' = terrible. British 'quite' is a downtoner that actually means 'somewhat' — not 'very.' And weather talk is pure Phatic Communication."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'cards',prompt:'Arthur says the weather is "quite interesting." What does he mean?',cards:[
+{icon:'🌈',label:'Take It Literally',sub:'"Yes, the weather has been fascinating! Tell me more!"',correct:false,feedback:"Pragmatic Failure! British 'quite interesting' = understatement for 'dreadful.' Taking it literally shows you don't understand the ironic coding. Also, weather talk is Phatic — it's about bonding, not meteorology.",xp:0},
+{icon:'🌧️',label:'Match the Irony',sub:'"Absolutely dreadful, more like it." (Dry smile)',correct:true,feedback:"Pragmatic Success! Decoding 'quite interesting' as ironic understatement + reciprocating with dry wit = perfect British phatic communion. Arthur laughs: 'Now you're getting it.'",xp:25}
+]}},
+
+{id:'l9',label:'Act 9/'+T,
+dialogue:[{speaker:'Narrator',text:"The pub quiz begins! Arthur invites Goro to join his team."},{speaker:'Goro (inner voice)',text:"Pub quizzes are sacred British social rituals. The key: participate earnestly but don't be a show-off."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'sequence',prompt:'Pub quiz ritual! Do things in the right order.',
+items:[{id:'join',icon:'🤝',label:'Accept Humbly',order:1},{id:'round',icon:'🍺',label:'Buy Team Round',order:2},{id:'answer',icon:'🧠',label:'Contribute Answer',order:3},{id:'cheer',icon:'🎉',label:'Modest Celebration',order:4}],
+feedbackOk:"Pragmatic Success! The pub quiz ritual: accept humbly → buy team a round (reciprocity) → contribute knowledge → celebrate with British restraint. Each step maintains group face.",
+feedbackFail:"Wrong order! The pub quiz has a specific social choreography. Getting it wrong marks you as an outsider.",xp:20}},
+
+{id:'l10',label:'Act 10/'+T,
+dialogue:[{speaker:'Arthur',text:"Well then. It's been... not entirely unpleasant."},{speaker:'Goro (inner voice)',text:"'Not entirely unpleasant' = 'I had a wonderful time.' Maximum British understatement. I must respond in kind."}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro()},
+interaction:{type:'qte_hold',title:'FIRM HANDSHAKE!',emoji:'🤝',prompt:'Hold for the farewell handshake — release in the green zone!',
+feedbackOk:"Pragmatic Success! A firm, brief handshake + 'Cheers, Arthur. Not a bad evening at all.' He slides a massive block of Vintage Somerset Cheddar across the bar: 'On the house, mate.'",
+feedbackFail:"Pragmatic Failure! Your handshake was wrong — too limp = weak, too strong = aggressive. British handshakes encode confidence through calibrated firmness.",xp:25}}
+];
+
+/* =========================================================
+   CHAPTER 8 — NEW YORK 🇺🇸  (8 Acts — Boss Rush + Final)
+   All 7 cultures reviewed + Final Boss Max Thorne
+   Each rush: 5 questions, 60 seconds, -5s penalty
+   ========================================================= */
+case 8:return[
+{id:'rush-jp',label:'🇯🇵 Japan',
+dialogue:[{speaker:'Narrator',text:"TIMES SQUARE — BOSS RUSH! 7 countries, 60 seconds each. First: Japan!"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro();setNpcForRush('jp')},
+interaction:{type:'bossrush',country:'Japan',flag:'🇯🇵',timeLimit:60,penalty:5,questions:[
+{text:'Master eyes your ingredients: "Mixing all these... well, <em>chotto</em>..." (trails off)',opts:[{label:'Push Back',sub:'"Why not? It will be great!"',correct:false},{label:'Read the Air',sub:'"I understand. Perhaps too much."',correct:true}],explain:'"Chotto" with a trailing pause IS a clear indirect refusal in Japanese (Indirect Speech Act).'},
+{text:'You ask to borrow his knife. He inhales sharply — "<em>Sssss...</em>" — and tilts his head.',opts:[{label:'Discuss It',sub:'"Is there a problem?"',correct:false},{label:'Withdraw Request',sub:'"Sorry to bother — never mind!"',correct:true}],explain:'The sharp inhale + head tilt = extreme reluctance. Nonverbal refusal.'},
+{text:'He says: "Your cooking has really improved, Goro!"',opts:[{label:'Accept Proudly',sub:'"Thanks! I practiced hard!"',correct:false},{label:'Deflect Humbly',sub:'"No no, still so much to learn!"',correct:true}],explain:'Japanese praise requires self-deprecation (Strategic Humility).'},
+{text:'He places his best bowl in front of you, saying nothing.',opts:[{label:'Ask Why',sub:'"What\'s this for?"',correct:false},{label:'Accept Silently',sub:'Bow slightly. Accept the honor in silence.',correct:true}],explain:'Silence IS communication in Japan. The bowl is a gift — words would diminish it.'},
+{text:'"If you have time... perhaps you could show me that Western technique... sometime..."',opts:[{label:'Set a Date',sub:'"How about Tuesday?"',correct:false},{label:'Recognize the Request',sub:'"I would be honored! Anytime that suits you."',correct:true}],explain:'This hedged, vague request is a polite directive. Being too specific forces him into commitment.'}
+]}},
+
+{id:'rush-cn',label:'🇨🇳 Shanghai',
+dialogue:[{speaker:'Narrator',text:"Wang Zong appears in Times Square! 60 seconds!"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro();setNpcForRush('cn')},
+interaction:{type:'bossrush',country:'Shanghai',flag:'🇨🇳',timeLimit:60,penalty:5,questions:[
+{text:'He grabs his card: "This coffee is on me!"',opts:[{label:'Accept Easily',sub:'"Oh, thanks so much!"',correct:false},{label:'Fight for Bill',sub:'"No way! I\'m paying!" (Block the reader)',correct:true}],explain:'You must fight for the bill at least twice before yielding gracefully.'},
+{text:'He hands you premium spices: "Just a little nothing."',opts:[{label:'Take Casually',sub:'"Thanks for the little gift."',correct:false},{label:'Amplify Value',sub:'"This is incredible! Way too generous!"',correct:true}],explain:'Amplify its value to give face (面子). Never agree it\'s "little."'},
+{text:'He sighs: "My nephew in NYC... can\'t find good connections."',opts:[{label:'Sympathize Only',sub:'"That\'s tough. Hope it improves."',correct:false},{label:'Offer Guanxi',sub:'"I know NYC chefs — let me connect them!"',correct:true}],explain:'This is an implicit request for your guanxi (social network).'},
+{text:'"Here, take this expensive tea. No no, I insist!"',opts:[{label:'Accept First Try',sub:'"OK, thank you!"',correct:false},{label:'Refuse Twice',sub:'"Too generous! I can\'t!" (Then accept on 3rd offer)',correct:true}],explain:'The gift-refusal ritual requires 2-3 rounds of push-pull.'},
+{text:'At dinner, he says: "随便吃 (eat whatever)!" The menu has shark fin.',opts:[{label:'Order Shark Fin',sub:'"I\'ll have the shark fin!"',correct:false},{label:'Let Host Order',sub:'"You know best — please choose for us!"',correct:true}],explain:'"Eat whatever" doesn\'t mean order the most expensive item. Defer to host.'}
+]}},
+
+{id:'rush-hk',label:'🇭🇰 Hong Kong',
+dialogue:[{speaker:'Narrator',text:"The HK cha chaan teng boss rushes through!"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro();setNpcForRush('hk')},
+interaction:{type:'bossrush',country:'Hong Kong',flag:'🇭🇰',timeLimit:60,penalty:5,questions:[
+{text:'He answers the phone: "講，咩事？(Talk. What?)"',opts:[{label:'Greet First',sub:'"Hi! Nice weather today..."',correct:false},{label:'Get to the Point',sub:'"Need a burner. Got a spare?"',correct:true}],explain:'In HK business, small talk wastes time. Direct = polite.'},
+{text:'"This is fragile 㗎 (ga)."',opts:[{label:'Feel Offended',sub:'"You think I\'m careless?"',correct:false},{label:'Match Particles',sub:'"知道啦 (la)，唔該！"',correct:true}],explain:'Sentence-final particles (ga, la) are in-group pragmatic markers.'},
+{text:'"你英文好唔好啊？(Is your English good?)"',opts:[{label:'Boast',sub:'"Yes, fluent actually."',correct:false},{label:'Understate',sub:'"OK 啦, 麻麻地。(So-so.)"',correct:true}],explain:'HK pragmatics values understatement + code-mixing for self-assessment.'},
+{text:'He says: "下次請你食飯 (Next time I treat you)."',opts:[{label:'Set Date',sub:'"Great! How about Friday?"',correct:false},{label:'Recognize Phatic',sub:'"好啊！到時再算！(Sure! We\'ll see!)"',correct:true}],explain:'"Next time I\'ll treat" is often phatic — a closeness signal, not a firm plan.'},
+{text:'Food arrives wrong. He yells at the waiter for 5 seconds, then smiles at you.',opts:[{label:'Feel Uncomfortable',sub:'"That was harsh..."',correct:false},{label:'Take It in Stride',sub:'Continue eating. This is normal HK directness.',correct:true}],explain:'HK directness in service isn\'t rudeness — it\'s efficient problem-solving.'}
+]}},
+
+{id:'rush-th',label:'🇹🇭 Thailand',
+dialogue:[{speaker:'Narrator',text:"Mae Khrua appears looking flustered in NYC!"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro();setNpcForRush('th')},
+interaction:{type:'bossrush',country:'Thailand',flag:'🇹🇭',timeLimit:60,penalty:5,questions:[
+{text:'A rude passerby knocks her spices. She smiles: "Mai pen rai."',opts:[{label:'Seek Justice',sub:'"Hey! Come back and apologize!"',correct:false},{label:'Help Calmly',sub:'Smile, kneel, help pick up spices.',correct:true}],explain:'Maintaining harmony > seeking justice (Jai Yen Yen).'},
+{text:'You carry her bags. She says: "No no, I can manage!"',opts:[{label:'Accept Refusal',sub:'"OK, careful then."',correct:false},{label:'Gently Insist',sub:'Smile and simply continue carrying.',correct:true}],explain:'Kreng Jai makes them refuse. Gentle override shows genuine care.'},
+{text:'She\'s 10 years older than you.',opts:[{label:'Stay Casual',sub:'"Hey! Nice to see you!"',correct:false},{label:'Use Honorific',sub:'Wai + address as "Pee" (older sibling).',correct:true}],explain:'Thai age-hierarchy honorifics are non-negotiable Social Deixis.'},
+{text:'Her cooking fails. She looks distressed.',opts:[{label:'Point It Out',sub:'"I think something went wrong..."',correct:false},{label:'Preserve Face',sub:'"Mai pen rai! Even imperfect, it\'s delicious!"',correct:true}],explain:'Face-saving is more important than accuracy in Thai culture.'},
+{text:'She offers you the last portion of food.',opts:[{label:'Take It',sub:'"Thank you!" (Takes it immediately)',correct:false},{label:'Refuse First',sub:'"No, you eat it!" (Then accept after she insists)',correct:true}],explain:'Kreng Jai requires initial refusal to show you\'re not greedy.'}
+]}},
+
+{id:'rush-ae',label:'🇦🇪 Dubai',
+dialogue:[{speaker:'Narrator',text:"Hassan sits on a Times Square bench!"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro();setNpcForRush('ae')},
+interaction:{type:'bossrush',country:'Dubai',flag:'🇦🇪',timeLimit:60,penalty:5,questions:[
+{text:'Empty seat next to Hassan\'s wife.',opts:[{label:'Sit by Wife',sub:'"May I sit here?"',correct:false},{label:'Approach Hassan',sub:'Walk to Hassan\'s side.',correct:true}],explain:'Non-related men must maintain distance from women.'},
+{text:'You admire his gold watch.',opts:[{label:'Ask Price',sub:'"How much did it cost?"',correct:false},{label:'Say Mashallah',sub:'"Mashallah — beautiful."',correct:true}],explain:'"Mashallah" deflects the Evil Eye of envy/praise.'},
+{text:'He offers his business card.',opts:[{label:'Left Hand',sub:'Take with whichever hand.',correct:false},{label:'Right Hand + Heart',sub:'Right hand, touch chest.',correct:true}],explain:'Right hand + chest touch = "I receive this sincerely."'},
+{text:'He invites you to dinner "sometime."',opts:[{label:'Decline Politely',sub:'"Thank you, but I\'m busy."',correct:false},{label:'Accept with Inshallah',sub:'"Inshallah! I would be honored."',correct:true}],explain:'Always accept invitations. "Inshallah" makes it non-binding but respectful.'},
+{text:'His young son runs over. Can you pat his head?',opts:[{label:'Pat Head',sub:'"Hey buddy!" (Reaches for head)',correct:false},{label:'Avoid Head',sub:'High-five the child\'s hand instead.',correct:true}],explain:'Head-touching has complex taboos — safer to use hand contact instead.'}
+]}},
+
+{id:'rush-fr',label:'🇫🇷 France',
+dialogue:[{speaker:'Narrator',text:"Laurent is scowling at a NYC hot dog stand!"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro();setNpcForRush('fr')},
+interaction:{type:'bossrush',country:'France',flag:'🇫🇷',timeLimit:60,penalty:5,questions:[
+{text:'You need to borrow his lighter.',opts:[{label:'Rush It',sub:'"Quick! Got a lighter?"',correct:false},{label:'Bonjour First',sub:'"Bonjour, Monsieur." Then ask.',correct:true}],explain:'No Bonjour = no conversation. It\'s a mandatory Performative.'},
+{text:'He says: "NYC hot dogs are garbage."',opts:[{label:'Agree Blindly',sub:'"Yes, terrible."',correct:false},{label:'Intellectual Pushback',sub:'"Street food reflects democratic efficiency, no?"',correct:true}],explain:'French debate culture rewards informed counter-arguments.'},
+{text:'He switches to "tu" mid-conversation.',opts:[{label:'Stay with Vous',sub:'Continue formal register.',correct:false},{label:'Mirror Tu',sub:'Switch to "tu" as well.',correct:true}],explain:'Refusing the tu/vous shift rejects offered intimacy.'},
+{text:'You taste his wine. He watches.',opts:[{label:'Say "Yummy!"',sub:'"Wow, yummy wine!"',correct:false},{label:'Be Analytical',sub:'"Structured tannins with a floral nose."',correct:true}],explain:'French food/wine register demands analytical vocabulary.'},
+{text:'Farewell time.',opts:[{label:'Over-Grateful',sub:'"You changed my LIFE!"',correct:false},{label:'Cool & Equal',sub:'"Merci, bonne soirée."',correct:true}],explain:'French farewells require cool boundary-respect (Negative Politeness).'}
+]}},
+
+{id:'rush-gb',label:'🇬🇧 Britain',
+dialogue:[{speaker:'Narrator',text:"Arthur is queueing for Broadway tickets!"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro();setNpcForRush('gb')},
+interaction:{type:'bossrush',country:'Britain',flag:'🇬🇧',timeLimit:60,penalty:5,questions:[
+{text:'"Well, it\'s <em>not exactly quiet</em>, is it?"',opts:[{label:'Correct Him',sub:'"Actually it\'s extremely loud."',correct:false},{label:'Match Irony',sub:'"Absolutely deafening." (Dry smile)',correct:true}],explain:'British ironic understatement: "not exactly quiet" = very loud.'},
+{text:'You need to squeeze past him.',opts:[{label:'Be Direct',sub:'"Excuse me, move please."',correct:false},{label:'Hedge',sub:'"Sorry, just trying to squeeze past."',correct:true}],explain:'"Squeeze past" minimizes imposition (hedging strategy).'},
+{text:'A stranger bumps into Arthur.',opts:[{label:'Confront Stranger',sub:'"Hey, watch where you\'re going!"',correct:false},{label:'Both Say Sorry',sub:'Both you and Arthur say "Oh, sorry!" simultaneously.',correct:true}],explain:'The mutual "sorry" is British phatic lubrication — nobody\'s at fault.'},
+{text:'Arthur says the show is "quite good."',opts:[{label:'Agree Enthusiastically',sub:'"YES! It\'s AMAZING!"',correct:false},{label:'Decode Correctly',sub:'"Decent, is it? Might be worth seeing then."',correct:true}],explain:'British "quite good" ≈ "not bad" ≈ moderate praise. Don\'t overshoot.'},
+{text:'Farewell. Arthur extends his hand.',opts:[{label:'Hug Him',sub:'Go in for a big hug.',correct:false},{label:'Firm Handshake',sub:'Brief, firm handshake + "Cheers, mate."',correct:true}],explain:'British men shake hands — hugs are reserved for close friends/family.'}
+]}},
+
+{id:'boss-max',label:'🇺🇸 FINAL BOSS',
+dialogue:[{speaker:'Narrator',text:"All 7 cultures conquered! Now face MAX THORNE — NYC's toughest food mogul!"}],
+afterDialogue:'showInteraction',onEnter:function(){setGoro();setNpcForRush('max')},
+interaction:{type:'finalboss',bossName:'MAX THORNE',bossTitle:'CEO, Global Palate Ventures',questions:[
+{scenario:'"Hey man! How\'s it going? Crazy weather, huh?"',goro:'Is he actually asking about my life?',opts:[{label:'Share Honestly',sub:'"Actually, I\'m exhausted and stressed..."',correct:false},{label:'Phatic Response',sub:'"Awesome, man! Yeah, wild out there. I\'m Goro."',correct:true}],explain:'"How\'s it going?" is Phatic Communication — NOT a real question. "Awesome" is the expected token response.'},
+{scenario:'"I\'m Maximilian Thorne III, CEO, Global Palate Ventures."',goro:'Should I show deference?',opts:[{label:'Ultra-Formal',sub:'"A great honor, Mr. Thorne, sir."',correct:false},{label:'Confident & Equal',sub:'"Great to meet you, Max. Call me Goro."',correct:true}],explain:'First names signal American egalitarian confidence. Deference = weakness.'},
+{scenario:'"So what do you think of your recipe?"',goro:'The British taught me to be modest...',opts:[{label:'British Understatement',sub:'"It\'s not bad. Quite decent, I suppose."',correct:false},{label:'American Confidence',sub:'"Absolutely killer. It just needs one final spark."',correct:true}],explain:'In American pragmatics, "not bad" = mediocre. Self-promote with conviction.'},
+{scenario:'"Love your vibe! We should totally grab dinner sometime!"',goro:'He is inviting me! Right?',opts:[{label:'Set a Date',sub:'"Great! How about this Friday?"',correct:false},{label:'Social Ping-Pong',sub:'"For sure! Let\'s connect on LinkedIn."',correct:true}],explain:'"We should grab dinner" is a phatic exit formula — NOT a real invitation.'},
+{scenario:'"Listen, I gotta bounce. Early meeting."',goro:'He is leaving with the soy sauce!',opts:[{label:'British Hedge',sub:'"Sorry, might I possibly trouble you for..."',correct:false},{label:'Direct American Pitch',sub:'"Max, wait. I need that Soy Sauce. Name your price."',correct:true}],explain:'Direct, confident, action-oriented. The American way. No hedging.'},
+{scenario:'"Ha! Bold. I like bold. But what\'s in it for me?"',goro:'A quid pro quo... American transactional pragmatics.',opts:[{label:'Appeal to Emotion',sub:'"Please, it would mean the world to me..."',correct:false},{label:'Offer Clear Value',sub:'"A tasting seat at my pop-up. Investor-exclusive. First of its kind."',correct:true}],explain:'American business pragmatics: every ask needs a clear value proposition. Emotion alone won\'t close the deal.'},
+{scenario:'"Deal! Put \'er there, partner." (Extends hand for handshake)',goro:'This is it — the final moment.',opts:[{label:'Bow (Japanese Style)',sub:'Bow deeply instead of shaking hands.',correct:false},{label:'Firm Handshake + Eye Contact',sub:'Strong grip, direct eye contact, confident smile.',correct:true}],explain:'In America, a firm handshake + direct eye contact = trustworthiness. A bow here would signal cultural confusion.'}
+]}}
+];
+
+default:return[]
+}}
+
+renderChapterMenu();
+</script>
+</body>
+</html>
